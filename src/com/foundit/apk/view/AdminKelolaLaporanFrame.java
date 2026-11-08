@@ -1,15 +1,14 @@
 package com.foundit.apk.view;
 
 import com.foundit.apk.*;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 public class AdminKelolaLaporanFrame extends JFrame {
     private List<Item> laporanList = new ArrayList<>();
@@ -79,13 +78,24 @@ public class AdminKelolaLaporanFrame extends JFrame {
             }
 
             final int index = i;
-            btnMenu.addActionListener(e -> {
-                dispose();
-                if (index == 0) new AdminDashboardFrame().setVisible(true);
-                else if (index == 1) new AdminKelolaKategoriFrame().setVisible(true);
-                else if (index == 3) new AdminKelolaUserFrame().setVisible(true);
-                else if (index == 5) new AdminVerifikasiKlaimFrame().setVisible(true);
-                else new AdminKelolaLaporanFrame().setVisible(true);
+btnMenu.addActionListener(e -> {
+                dispose(); // Menutup frame yang sedang aktif
+                
+                if (index == 0) {
+                    new AdminDashboardFrame().setVisible(true);
+                } else if (index == 1) {
+                    new AdminKelolaKategoriFrame().setVisible(true);
+                } else if (index == 2) {
+                    new AdminKelolaLaporanFrame().setVisible(true);
+                } else if (index == 3) {
+                    new AdminKelolaUserFrame().setVisible(true);
+                } else if (index == 4) {
+                    new AdminUbahStatusFrame().setVisible(true);
+                } else if (index == 5) {
+                    new AdminVerifikasiKlaimFrame().setVisible(true);
+                } else if (index == 6) {
+                    new AdminVerifikasiLaporanFrame().setVisible(true);
+                }
             });
 
             navPanel.add(btnMenu);

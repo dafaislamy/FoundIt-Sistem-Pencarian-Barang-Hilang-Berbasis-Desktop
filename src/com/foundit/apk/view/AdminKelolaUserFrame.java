@@ -1,13 +1,12 @@
 package com.foundit.apk.view;
 
 import com.foundit.apk.*;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 public class AdminKelolaUserFrame extends JFrame {
     private List<User> userList = new ArrayList<>();
@@ -65,13 +64,24 @@ public class AdminKelolaUserFrame extends JFrame {
             }
 
             final int index = i;
-            btnMenu.addActionListener(e -> {
-                dispose();
-                if (index == 0) new AdminDashboardFrame().setVisible(true);
-                else if (index == 1) new AdminKelolaKategoriFrame().setVisible(true);
-                else if (index == 2) new AdminKelolaLaporanFrame().setVisible(true);
-                else if (index == 5) new AdminVerifikasiKlaimFrame().setVisible(true);
-                else new AdminKelolaUserFrame().setVisible(true);
+btnMenu.addActionListener(e -> {
+                dispose(); // Menutup frame yang sedang aktif
+                
+                if (index == 0) {
+                    new AdminDashboardFrame().setVisible(true);
+                } else if (index == 1) {
+                    new AdminKelolaKategoriFrame().setVisible(true);
+                } else if (index == 2) {
+                    new AdminKelolaLaporanFrame().setVisible(true);
+                } else if (index == 3) {
+                    new AdminKelolaUserFrame().setVisible(true);
+                } else if (index == 4) {
+                    new AdminUbahStatusFrame().setVisible(true);
+                } else if (index == 5) {
+                    new AdminVerifikasiKlaimFrame().setVisible(true);
+                } else if (index == 6) {
+                    new AdminVerifikasiLaporanFrame().setVisible(true);
+                }
             });
 
             navPanel.add(btnMenu);
