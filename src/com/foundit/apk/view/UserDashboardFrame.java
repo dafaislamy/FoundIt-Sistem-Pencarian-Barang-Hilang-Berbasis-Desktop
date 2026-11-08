@@ -1,10 +1,9 @@
 package com.foundit.apk.view;
 
 import com.foundit.apk.data.ReportRepository;
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.util.*;
 
 /**
  * Dashboard pengguna dengan daftar laporan yang dapat digulir.
@@ -57,6 +56,19 @@ public class UserDashboardFrame extends JFrame {
             false,
             () -> openFound()
         ));
+
+side.add(menu("Riwayat Laporan", "history", false, () -> {
+    new RiwayatLaporanFrame(email, role).setVisible(true);
+    dispose();
+}));
+        
+        side.add(menu(
+            "Status Klaim",
+            "status",
+            false,
+            () -> openStatusKlaim()
+        ));
+
 
         side.add(Box.createVerticalGlue());
 
@@ -404,15 +416,18 @@ public class UserDashboardFrame extends JFrame {
 
         spaceButton(claim, 88, 40);
 
-        claim.addActionListener(e ->
-            JOptionPane.showMessageDialog(
+        claim.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Permintaan klaim untuk '" + name
-                    + "' akan diproses pada tahap integrasi database.",
+                "Ajukan klaim untuk barang '" + name + "'?",
                 "Klaim Barang",
-                JOptionPane.INFORMATION_MESSAGE
-            )
-        );
+                JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                StatusKlaimFrame.tambahKlaim(name, "Umum", loc, desc, "Diajukan dari Dashboard");
+                openStatusKlaim();
+            }
+        });
 
         acts.add(detail);
         acts.add(claim);
@@ -493,6 +508,16 @@ public class UserDashboardFrame extends JFrame {
 
     private void openFound() {
         new LaporDitemukanFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openStatusKlaim() {
+        new StatusKlaimFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openRiwayatLaporan() {
+        new RiwayatLaporanFrame(email, role).setVisible(true);
         dispose();
     }
 }

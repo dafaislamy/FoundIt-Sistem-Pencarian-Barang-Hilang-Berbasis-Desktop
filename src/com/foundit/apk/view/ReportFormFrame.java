@@ -1,13 +1,13 @@
 package com.foundit.apk.view;
 
 import com.foundit.apk.data.ReportRepository;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.time.LocalDate;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 /**
- * Form laporan memenuhi area kerja dan dapat digulir bila layar kecil.
+ * Form laporan memenuhi area kerja dengan sidebar navigasi dan dapat digulir bila layar kecil.
  */
 abstract class ReportFormFrame extends JFrame {
 
@@ -22,14 +22,92 @@ abstract class ReportFormFrame extends JFrame {
         this.type = type;
         this.title = title;
 
-        UiKit.frame(this, "FoundIt | " + title, 1160, 760);
-        setMinimumSize(new Dimension(950, 650));
+        UiKit.frame(this, "FoundIt | " + title, 1200, 760);
+        setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
     }
 
     private JPanel build() {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
+
+        // SIDEBAR KIRI
+        JPanel side = new JPanel();
+        side.setBackground(Color.WHITE);
+        side.setPreferredSize(new Dimension(238, 0));
+        side.setBorder(
+            BorderFactory.createMatteBorder(0, 0, 0, 1, UiKit.BORDER)
+        );
+        side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
+
+        JPanel logo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        logo.setOpaque(false);
+        logo.setBorder(new EmptyBorder(27, 25, 32, 0));
+
+        logo.add(UiKit.label("Found", 27, true, UiKit.BLUE_DARK));
+        logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
+
+        side.add(logo);
+        side.add(menu("Dashboard", "home", false, () -> dashboard()));
+        side.add(menu(
+            "Lapor Barang Hilang",
+            "lost",
+            type.equals("HILANG"),
+            () -> {
+                if (!type.equals("HILANG")) {
+                    new LaporHilangFrame(email, role).setVisible(true);
+                    dispose();
+                }
+            }
+        ));
+        side.add(menu(
+            "Lapor Barang Ditemukan",
+            "found",
+            type.equals("DITEMUKAN"),
+            () -> {
+                if (!type.equals("DITEMUKAN")) {
+                    new LaporDitemukanFrame(email, role).setVisible(true);
+                    dispose();
+                }
+            }
+        ));
+
+        side.add(menu("Riwayat Laporan", "history", false, () -> {
+    new RiwayatLaporanFrame(email, role).setVisible(true);
+    dispose();
+}));
+
+        // Menu Status Klaim ditambahkan di sini:
+        side.add(menu(
+            "Status Klaim",
+            "status",
+            false,
+            () -> {
+                new StatusKlaimFrame(email, role).setVisible(true);
+                dispose();
+            }
+        ));
+
+
+
+        side.add(Box.createVerticalGlue());
+
+        side.add(menu(
+            "Keluar",
+            "return",
+            false,
+            () -> {
+                new IndexFrame().setVisible(true);
+                dispose();
+            }
+        ));
+
+        side.add(Box.createVerticalStrut(25));
+        root.add(side, BorderLayout.WEST);
+
+        // AREA KANAN (KONTEN + FOOTER)
+        JPanel rightArea = new JPanel(new BorderLayout());
+        rightArea.setOpaque(false);
 
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(Color.WHITE);
@@ -40,7 +118,6 @@ abstract class ReportFormFrame extends JFrame {
             UiKit.PALE,
             UiKit.BLUE_DARK
         );
-
         back.addActionListener(e -> dashboard());
 
         top.add(back, BorderLayout.WEST);
@@ -49,7 +126,7 @@ abstract class ReportFormFrame extends JFrame {
             BorderLayout.EAST
         );
 
-        root.add(top, BorderLayout.NORTH);
+        rightArea.add(top, BorderLayout.NORTH);
 
         JPanel content = new JPanel(new BorderLayout());
         content.setOpaque(false);
@@ -161,17 +238,11 @@ abstract class ReportFormFrame extends JFrame {
 
         content.add(form, BorderLayout.CENTER);
 
-        JPanel actions = new JPanel(
-            new FlowLayout(FlowLayout.RIGHT, 10, 0)
-        );
-        actions.setOpaque(false);
-
         JButton reset = UiKit.button(
             "Reset Form",
             new Color(255, 238, 236),
             new Color(190, 70, 60)
         );
-
         reset.addActionListener(e -> resetForm());
 
         JButton cancel = UiKit.button(
@@ -179,7 +250,6 @@ abstract class ReportFormFrame extends JFrame {
             new Color(237, 241, 245),
             UiKit.TEXT
         );
-
         cancel.addActionListener(e -> dashboard());
 
         JButton submit = UiKit.button(
@@ -187,23 +257,17 @@ abstract class ReportFormFrame extends JFrame {
             UiKit.BLUE,
             Color.WHITE
         );
-
         submit.addActionListener(e -> submit());
-
-        actions.add(reset);
-        actions.add(cancel);
-        actions.add(submit);
 
         JScrollPane sc = new JScrollPane(content);
         sc.setBorder(null);
         sc.getVerticalScrollBar().setUnitIncrement(18);
 
-        root.add(sc, BorderLayout.CENTER);
+        rightArea.add(sc, BorderLayout.CENTER);
 
         JPanel footer = new JPanel(
             new FlowLayout(FlowLayout.RIGHT, 10, 12)
         );
-
         footer.setBackground(Color.WHITE);
         footer.setBorder(
             BorderFactory.createMatteBorder(
@@ -215,9 +279,37 @@ abstract class ReportFormFrame extends JFrame {
         footer.add(cancel);
         footer.add(submit);
 
-        root.add(footer, BorderLayout.SOUTH);
+        rightArea.add(footer, BorderLayout.SOUTH);
+        root.add(rightArea, BorderLayout.CENTER);
 
         return root;
+    }
+
+    private JPanel menu(
+            String text,
+            String icon,
+            boolean active,
+            Runnable action) {
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.setMaximumSize(new Dimension(220, 46));
+        p.setBorder(new EmptyBorder(12, 18, 12, 10));
+        p.setBackground(active ? UiKit.PALE : Color.WHITE);
+
+        JLabel item = new JLabel(text);
+        item.setHorizontalAlignment(SwingConstants.LEFT);
+        item.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        item.setForeground(active ? UiKit.BLUE : UiKit.MUTED);
+
+        p.add(item);
+        p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        p.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                action.run();
+            }
+        });
+
+        return p;
     }
 
     private void resetForm() {
