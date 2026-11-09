@@ -78,11 +78,12 @@ public class StatusKlaimFrame extends JFrame {
 
         side.add(logo);
         side.add(menu("Dashboard", "home", false, () -> openDashboard()));
+        side.add(menu("Cari Barang", "search", false, () -> { new CariBarangFrame(email, role).setVisible(true); dispose(); }));
         side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
         side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
         side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
         side.add(menu("Status Klaim", "status", true, () -> {}));
-        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
+        side.add(menu("Profil", "profile", false, () -> openProfil()));
 
         side.add(Box.createVerticalGlue());
 
@@ -310,35 +311,28 @@ public class StatusKlaimFrame extends JFrame {
         JTextField tfNama = new JTextField();
         JComboBox<String> cbKategori = new JComboBox<>(new String[]{"Elektronik", "Aksesoris", "Dokumen", "Lainnya"});
         JTextField tfLokasi = new JTextField();
-        JTextField tfCiri = new JTextField();
-        JTextField tfKet = new JTextField();
-
+        JTextArea tfBukti = new JTextArea(5, 28);
+        tfBukti.setLineWrap(true);
+        tfBukti.setWrapStyleWord(true);
         Object[] form = {
             "Nama Barang:", tfNama,
             "Kategori:", cbKategori,
-            "Lokasi Kehilangan:", tfLokasi,
-            "Ciri Khusus Barang:", tfCiri,
-            "Keterangan Tambahan:", tfKet
+            "Lokasi Barang Terakhir Terlihat:", tfLokasi,
+            "Bukti Kepemilikan (minimal 20 karakter):", new JScrollPane(tfBukti)
         };
-
-        int opt = JOptionPane.showConfirmDialog(
-            this, form, "Ajukan Klaim Barang", JOptionPane.OK_CANCEL_OPTION
-        );
-
+        int opt = JOptionPane.showConfirmDialog(this, form, "Ajukan Klaim Barang", JOptionPane.OK_CANCEL_OPTION);
         if (opt == JOptionPane.OK_OPTION) {
-            if (!tfNama.getText().trim().isEmpty() && !tfLokasi.getText().trim().isEmpty()) {
-                tambahKlaim(
-                    tfNama.getText().trim(),
-                    (String) cbKategori.getSelectedItem(),
-                    tfLokasi.getText().trim(),
-                    tfCiri.getText().trim().isEmpty() ? "-" : tfCiri.getText().trim(),
-                    tfKet.getText().trim().isEmpty() ? "-" : tfKet.getText().trim()
-                );
-                refreshKlaimList();
-                JOptionPane.showMessageDialog(this, "Pengajuan klaim berhasil dikirim!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Nama barang dan lokasi kehilangan wajib diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            String bukti = tfBukti.getText().trim();
+            if (tfNama.getText().trim().isEmpty() || tfLokasi.getText().trim().isEmpty()) {
+                UiKit.info(this, "Nama barang dan lokasi wajib diisi."); return;
             }
+            if (bukti.length() < 20 || bukti.length() > 1000) {
+                UiKit.info(this, "Bukti kepemilikan harus 20-1000 karakter."); return;
+            }
+            tambahKlaim(tfNama.getText().trim(), (String)cbKategori.getSelectedItem(),
+                tfLokasi.getText().trim(), "-", bukti);
+            refreshKlaimList();
+            UiKit.info(this, "Pengajuan klaim berhasil dikirim dan menunggu verifikasi.");
         }
     }
 
@@ -396,6 +390,10 @@ public class StatusKlaimFrame extends JFrame {
 
     private void openRegister() {
         new RegisterFrame(email, role).setVisible(true);
+        dispose();
+    }
+    private void openProfil() {
+        new ProfilFrame(email, role).setVisible(true);
         dispose();
     }
 }
