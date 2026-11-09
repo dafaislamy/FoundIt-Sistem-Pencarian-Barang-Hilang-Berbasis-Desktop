@@ -12,8 +12,6 @@ import javax.swing.border.EmptyBorder;
 public class StatusKlaimFrame extends JFrame {
 
     private final String email, role;
-    
-    // Penyimpanan daftar klaim di memori (menggantikan localStorage "daftarKlaim" pada status-klaim.js)
     private static final List<String[]> daftarKlaim = new ArrayList<>();
     private static boolean initialized = false;
 
@@ -24,7 +22,6 @@ public class StatusKlaimFrame extends JFrame {
         this.email = email;
         this.role = role;
 
-        // Data sampel awal agar tampilan kartu klaim langsung terlihat
         if (!initialized) {
             daftarKlaim.add(new String[]{
                 "Kunci Motor Yamaha Aerox",
@@ -50,7 +47,6 @@ public class StatusKlaimFrame extends JFrame {
         setContentPane(build());
     }
 
-    // Method statis agar halaman lain (seperti Dashboard atau KlaimFrame) dapat menambahkan klaim baru
     public static void tambahKlaim(String namaBarang, String kategori, String lokasi, String ciri, String keterangan) {
         daftarKlaim.add(new String[]{
             namaBarang,
@@ -67,7 +63,7 @@ public class StatusKlaimFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR
+        // SIDEBAR LENGKAP 6 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -84,12 +80,9 @@ public class StatusKlaimFrame extends JFrame {
         side.add(menu("Dashboard", "home", false, () -> openDashboard()));
         side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
         side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
-        side.add(menu("Riwayat Laporan", "history", false, () -> {
-    new RiwayatLaporanFrame(email, role).setVisible(true);
-    dispose();
-}));
+        side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
         side.add(menu("Status Klaim", "status", true, () -> {}));
-
+        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
 
         side.add(Box.createVerticalGlue());
 
@@ -141,7 +134,6 @@ public class StatusKlaimFrame extends JFrame {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(22, 0, 10, 8));
 
-        // CONTAINER STATUS KLAIM (.claim-status-container)
         JPanel container = UiKit.card();
         container.setBackground(Color.WHITE);
         container.setBorder(BorderFactory.createCompoundBorder(
@@ -150,7 +142,6 @@ public class StatusKlaimFrame extends JFrame {
         ));
         container.setLayout(new BorderLayout(0, 22));
 
-        // HEADER STATUS KLAIM (.status-header)
         JPanel statusHeader = new JPanel(new BorderLayout());
         statusHeader.setOpaque(false);
         statusHeader.setBorder(BorderFactory.createCompoundBorder(
@@ -178,7 +169,6 @@ public class StatusKlaimFrame extends JFrame {
         statusHeader.add(headerRight, BorderLayout.EAST);
         container.add(statusHeader, BorderLayout.NORTH);
 
-        // DAFTAR KARTU KLAIM (#klaimList)
         klaimListPanel = new JPanel();
         klaimListPanel.setOpaque(false);
         klaimListPanel.setLayout(new BoxLayout(klaimListPanel, BoxLayout.Y_AXIS));
@@ -188,7 +178,6 @@ public class StatusKlaimFrame extends JFrame {
         container.add(klaimListPanel, BorderLayout.CENTER);
         body.add(container);
 
-        // SCROLL PANE
         JScrollPane sc = new JScrollPane(body);
         sc.setBorder(null);
         sc.getViewport().setOpaque(false);
@@ -206,7 +195,6 @@ public class StatusKlaimFrame extends JFrame {
         jumlahKlaimLabel.setText(daftarKlaim.size() + " pengajuan klaim");
 
         if (daftarKlaim.isEmpty()) {
-            // Tampilan Klaim Kosong (#emptyClaim / .empty-claim)
             JPanel emptyPanel = new JPanel();
             emptyPanel.setBackground(new Color(248, 250, 252));
             emptyPanel.setBorder(new EmptyBorder(50, 20, 50, 20));
@@ -231,7 +219,6 @@ public class StatusKlaimFrame extends JFrame {
 
             klaimListPanel.add(emptyPanel);
         } else {
-            // Menampilkan daftar klaim secara terbalik (.slice().reverse() pada status-klaim.js)
             for (int i = daftarKlaim.size() - 1; i >= 0; i--) {
                 String[] k = daftarKlaim.get(i);
                 klaimListPanel.add(createClaimCard(k));
@@ -246,7 +233,6 @@ public class StatusKlaimFrame extends JFrame {
     }
 
     private JPanel createClaimCard(String[] klaim) {
-        // KARTU STATUS KLAIM (.claim-card)
         JPanel card = new JPanel(new BorderLayout(0, 15));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -254,7 +240,6 @@ public class StatusKlaimFrame extends JFrame {
             new EmptyBorder(20, 20, 20, 20)
         ));
 
-        // Bagian Atas Kartu (.claim-top)
         JPanel top = new JPanel(new BorderLayout(15, 0));
         top.setOpaque(false);
 
@@ -267,7 +252,6 @@ public class StatusKlaimFrame extends JFrame {
 
         top.add(titleBox, BorderLayout.WEST);
 
-        // Badge Status (.claim-badge)
         JPanel badgeWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         badgeWrap.setOpaque(false);
 
@@ -277,18 +261,17 @@ public class StatusKlaimFrame extends JFrame {
         badge.setBorder(new EmptyBorder(6, 12, 6, 12));
 
         if (klaim[1].toLowerCase().contains("setuju")) {
-            badge.setBackground(new Color(234, 248, 239)); // #eaf8ef
-            badge.setForeground(new Color(39, 174, 96));   // #27ae60
+            badge.setBackground(new Color(234, 248, 239));
+            badge.setForeground(new Color(39, 174, 96));
         } else {
-            badge.setBackground(new Color(255, 246, 223)); // #fff6df
-            badge.setForeground(new Color(214, 137, 16));  // #d68910
+            badge.setBackground(new Color(255, 246, 223));
+            badge.setForeground(new Color(214, 137, 16));
         }
 
         badgeWrap.add(badge);
         top.add(badgeWrap, BorderLayout.EAST);
         card.add(top, BorderLayout.NORTH);
 
-        // Detail Klaim Grid 2x2 (.claim-detail)
         JPanel detailGrid = new JPanel(new GridLayout(2, 2, 12, 12));
         detailGrid.setOpaque(false);
         detailGrid.setBorder(BorderFactory.createCompoundBorder(
@@ -308,13 +291,12 @@ public class StatusKlaimFrame extends JFrame {
     }
 
     private JPanel createDetailItem(String label, String value) {
-        // Item Detail (.claim-detail-item)
         JPanel item = new JPanel();
-        item.setBackground(new Color(248, 250, 252)); // #f8fafc
+        item.setBackground(new Color(248, 250, 252));
         item.setBorder(new EmptyBorder(12, 14, 12, 14));
         item.setLayout(new BoxLayout(item, BoxLayout.Y_AXIS));
 
-        JLabel lbl = UiKit.label(label, 11, false, new Color(149, 165, 166)); // #95a5a6
+        JLabel lbl = UiKit.label(label, 11, false, new Color(149, 165, 166));
         JLabel val = UiKit.label(value, 13, true, UiKit.TEXT);
 
         item.add(lbl);
@@ -325,8 +307,6 @@ public class StatusKlaimFrame extends JFrame {
     }
 
     private void showFormAjukanKlaim() {
-        // Apabila nantinya Anda sudah membuat KlaimFrame.java, bagian ini dapat diganti menjadi:
-        // new KlaimFrame(email, role).setVisible(true); dispose();
         JTextField tfNama = new JTextField();
         JComboBox<String> cbKategori = new JComboBox<>(new String[]{"Elektronik", "Aksesoris", "Dokumen", "Lainnya"});
         JTextField tfLokasi = new JTextField();
@@ -406,6 +386,16 @@ public class StatusKlaimFrame extends JFrame {
 
     private void openFound() {
         new LaporDitemukanFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openRiwayatLaporan() {
+        new RiwayatLaporanFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openRegister() {
+        new RegisterFrame(email, role).setVisible(true);
         dispose();
     }
 }

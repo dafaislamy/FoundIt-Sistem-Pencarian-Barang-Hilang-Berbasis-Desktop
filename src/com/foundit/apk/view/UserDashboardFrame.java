@@ -6,7 +6,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Dashboard pengguna dengan daftar laporan yang dapat digulir.
+ * Dashboard pengguna dengan daftar laporan yang dapat digulir dan navigasi lengkap.
  */
 public class UserDashboardFrame extends JFrame {
 
@@ -26,7 +26,7 @@ public class UserDashboardFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // Sidebar
+        // Sidebar Navigasi Kiri
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -44,32 +44,11 @@ public class UserDashboardFrame extends JFrame {
 
         side.add(logo);
         side.add(menu("Dashboard", "home", true, () -> {}));
-        side.add(menu(
-            "Lapor Barang Hilang",
-            "lost",
-            false,
-            () -> openLost()
-        ));
-        side.add(menu(
-            "Lapor Barang Ditemukan",
-            "found",
-            false,
-            () -> openFound()
-        ));
-
-side.add(menu("Riwayat Laporan", "history", false, () -> {
-    new RiwayatLaporanFrame(email, role).setVisible(true);
-    dispose();
-}));
-        
-        side.add(menu(
-            "Status Klaim",
-            "status",
-            false,
-            () -> openStatusKlaim()
-        ));
-
-
+        side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
+        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
+        side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
+        side.add(menu("Status Klaim", "status", false, () -> openStatusKlaim()));
+        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
         side.add(Box.createVerticalGlue());
 
         side.add(menu(
@@ -108,7 +87,8 @@ side.add(menu("Riwayat Laporan", "history", false, () -> {
         );
         profile.setOpaque(false);
 
-        JLabel avatar = UiKit.label("U", 16, true, Color.WHITE);
+        String initial = (email != null && !email.isEmpty()) ? email.substring(0, 1).toUpperCase() : "U";
+        JLabel avatar = UiKit.label(initial, 16, true, Color.WHITE);
         avatar.setHorizontalAlignment(SwingConstants.CENTER);
         avatar.setOpaque(true);
         avatar.setBackground(UiKit.BLUE);
@@ -518,6 +498,11 @@ side.add(menu("Riwayat Laporan", "history", false, () -> {
 
     private void openRiwayatLaporan() {
         new RiwayatLaporanFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openRegister() {
+        new RegisterFrame(email, role).setVisible(true);
         dispose();
     }
 }

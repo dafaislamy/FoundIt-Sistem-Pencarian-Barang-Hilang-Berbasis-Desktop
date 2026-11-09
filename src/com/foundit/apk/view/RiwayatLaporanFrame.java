@@ -1,10 +1,10 @@
 package com.foundit.apk.view;
 
 import com.foundit.apk.data.ReportRepository;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 /**
  * Halaman untuk melihat riwayat laporan barang yang pernah dibuat pengguna.
@@ -30,7 +30,7 @@ public class RiwayatLaporanFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR
+        // SIDEBAR LENGKAP 6 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -49,7 +49,8 @@ public class RiwayatLaporanFrame extends JFrame {
         side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
         side.add(menu("Riwayat Laporan", "history", true, () -> {}));
         side.add(menu("Status Klaim", "status", false, () -> openStatusKlaim()));
-    
+        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
+
         side.add(Box.createVerticalGlue());
 
         side.add(menu("Keluar", "return", false, () -> {
@@ -100,7 +101,6 @@ public class RiwayatLaporanFrame extends JFrame {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(22, 0, 10, 8));
 
-        // CONTAINER RIWAYAT LAPORAN (.history-container)
         JPanel container = UiKit.card();
         container.setBackground(Color.WHITE);
         container.setBorder(BorderFactory.createCompoundBorder(
@@ -109,7 +109,6 @@ public class RiwayatLaporanFrame extends JFrame {
         ));
         container.setLayout(new BorderLayout(0, 22));
 
-        // HEADER RIWAYAT LAPORAN (.history-header)
         JPanel historyHeader = new JPanel(new BorderLayout());
         historyHeader.setOpaque(false);
         historyHeader.setBorder(BorderFactory.createCompoundBorder(
@@ -137,7 +136,6 @@ public class RiwayatLaporanFrame extends JFrame {
         historyHeader.add(headerRight, BorderLayout.EAST);
         container.add(historyHeader, BorderLayout.NORTH);
 
-        // DAFTAR KARTU RIWAYAT (#riwayatList)
         riwayatListPanel = new JPanel();
         riwayatListPanel.setOpaque(false);
         riwayatListPanel.setLayout(new BoxLayout(riwayatListPanel, BoxLayout.Y_AXIS));
@@ -147,7 +145,6 @@ public class RiwayatLaporanFrame extends JFrame {
         container.add(riwayatListPanel, BorderLayout.CENTER);
         body.add(container);
 
-        // SCROLL PANE
         JScrollPane sc = new JScrollPane(body);
         sc.setBorder(null);
         sc.getViewport().setOpaque(false);
@@ -164,13 +161,11 @@ public class RiwayatLaporanFrame extends JFrame {
         riwayatListPanel.removeAll();
         List<ReportRepository.Report> daftarLaporan = repo.findAll();
 
-        // Menampilkan jumlah laporan sesuai riwayat-laporan.js
         jumlahLaporanLabel.setText(daftarLaporan.size() + " laporan ditemukan");
 
         if (daftarLaporan.isEmpty()) {
-            // Tampilan jika belum ada laporan (#emptyHistory / .empty-history)
             JPanel emptyPanel = new JPanel();
-            emptyPanel.setBackground(new Color(248, 250, 252)); // #f8fafc
+            emptyPanel.setBackground(new Color(248, 250, 252));
             emptyPanel.setBorder(new EmptyBorder(50, 20, 50, 20));
             emptyPanel.setLayout(new BoxLayout(emptyPanel, BoxLayout.Y_AXIS));
 
@@ -193,7 +188,6 @@ public class RiwayatLaporanFrame extends JFrame {
 
             riwayatListPanel.add(emptyPanel);
         } else {
-            // Menampilkan riwayat dari yang terbaru (.slice().reverse() pada riwayat-laporan.js)
             for (int i = daftarLaporan.size() - 1; i >= 0; i--) {
                 ReportRepository.Report r = daftarLaporan.get(i);
                 riwayatListPanel.add(createHistoryCard(r));
@@ -208,7 +202,6 @@ public class RiwayatLaporanFrame extends JFrame {
     }
 
     private JPanel createHistoryCard(ReportRepository.Report r) {
-        // KARTU RIWAYAT LAPORAN (.history-card)
         JPanel card = new JPanel(new BorderLayout(0, 15));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -216,7 +209,6 @@ public class RiwayatLaporanFrame extends JFrame {
             new EmptyBorder(20, 20, 20, 20)
         ));
 
-        // Bagian Atas (.history-top)
         JPanel top = new JPanel(new BorderLayout(15, 0));
         top.setOpaque(false);
 
@@ -233,7 +225,6 @@ public class RiwayatLaporanFrame extends JFrame {
 
         top.add(titleBox, BorderLayout.WEST);
 
-        // Badge Status (.history-status)
         JPanel badgeWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         badgeWrap.setOpaque(false);
 
@@ -243,18 +234,17 @@ public class RiwayatLaporanFrame extends JFrame {
         badge.setBorder(new EmptyBorder(6, 11, 6, 11));
 
         if (isHilang) {
-            badge.setBackground(new Color(253, 236, 234)); // #fdecea
-            badge.setForeground(new Color(231, 76, 60));   // #e74c3c
+            badge.setBackground(new Color(253, 236, 234));
+            badge.setForeground(new Color(231, 76, 60));
         } else {
-            badge.setBackground(new Color(234, 248, 239)); // #eaf8ef
-            badge.setForeground(new Color(39, 174, 96));   // #27ae60
+            badge.setBackground(new Color(234, 248, 239));
+            badge.setForeground(new Color(39, 174, 96));
         }
 
         badgeWrap.add(badge);
         top.add(badgeWrap, BorderLayout.EAST);
         card.add(top, BorderLayout.NORTH);
 
-        // Detail Laporan Grid 3 Kolom (.history-detail: Kategori, Lokasi, Tanggal)
         JPanel detailGrid = new JPanel(new GridLayout(1, 3, 12, 0));
         detailGrid.setOpaque(false);
         detailGrid.setBorder(BorderFactory.createCompoundBorder(
@@ -276,13 +266,12 @@ public class RiwayatLaporanFrame extends JFrame {
     }
 
     private JPanel createDetailItem(String label, String value) {
-        // Item Detail (.history-detail-item)
         JPanel item = new JPanel();
-        item.setBackground(new Color(248, 250, 252)); // #f8fafc
+        item.setBackground(new Color(248, 250, 252));
         item.setBorder(new EmptyBorder(12, 14, 12, 14));
         item.setLayout(new BoxLayout(item, BoxLayout.Y_AXIS));
 
-        JLabel lbl = UiKit.label(label, 11, false, new Color(149, 165, 166)); // #95a5a6
+        JLabel lbl = UiKit.label(label, 11, false, new Color(149, 165, 166));
         JLabel val = UiKit.label(value, 13, true, UiKit.TEXT);
 
         item.add(lbl);
@@ -341,6 +330,11 @@ public class RiwayatLaporanFrame extends JFrame {
 
     private void openStatusKlaim() {
         new StatusKlaimFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openRegister() {
+        new RegisterFrame(email, role).setVisible(true);
         dispose();
     }
 }

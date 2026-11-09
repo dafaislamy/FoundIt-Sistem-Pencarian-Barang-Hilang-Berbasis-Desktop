@@ -7,7 +7,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Form laporan memenuhi area kerja dengan sidebar navigasi dan dapat digulir bila layar kecil.
+ * Form laporan memenuhi area kerja dengan sidebar navigasi lengkap.
  */
 abstract class ReportFormFrame extends JFrame {
 
@@ -31,13 +31,11 @@ abstract class ReportFormFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR KIRI
+        // SIDEBAR LENGKAP 6 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
-        side.setBorder(
-            BorderFactory.createMatteBorder(0, 0, 0, 1, UiKit.BORDER)
-        );
+        side.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UiKit.BORDER));
         side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
 
         JPanel logo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -71,36 +69,25 @@ abstract class ReportFormFrame extends JFrame {
                 }
             }
         ));
-
         side.add(menu("Riwayat Laporan", "history", false, () -> {
-    new RiwayatLaporanFrame(email, role).setVisible(true);
-    dispose();
-}));
-
-        // Menu Status Klaim ditambahkan di sini:
-        side.add(menu(
-            "Status Klaim",
-            "status",
-            false,
-            () -> {
-                new StatusKlaimFrame(email, role).setVisible(true);
-                dispose();
-            }
-        ));
-
-
+            new RiwayatLaporanFrame(email, role).setVisible(true);
+            dispose();
+        }));
+        side.add(menu("Status Klaim", "status", false, () -> {
+            new StatusKlaimFrame(email, role).setVisible(true);
+            dispose();
+        }));
+        side.add(menu("Lengkapi Profil", "profile", false, () -> {
+            new RegisterFrame(email, role).setVisible(true);
+            dispose();
+        }));
 
         side.add(Box.createVerticalGlue());
 
-        side.add(menu(
-            "Keluar",
-            "return",
-            false,
-            () -> {
-                new IndexFrame().setVisible(true);
-                dispose();
-            }
-        ));
+        side.add(menu("Keluar", "return", false, () -> {
+            new IndexFrame().setVisible(true);
+            dispose();
+        }));
 
         side.add(Box.createVerticalStrut(25));
         root.add(side, BorderLayout.WEST);
@@ -113,18 +100,11 @@ abstract class ReportFormFrame extends JFrame {
         top.setBackground(Color.WHITE);
         top.setBorder(new EmptyBorder(16, 30, 16, 30));
 
-        JButton back = UiKit.button(
-            "Kembali ke Dashboard",
-            UiKit.PALE,
-            UiKit.BLUE_DARK
-        );
+        JButton back = UiKit.button("Kembali ke Dashboard", UiKit.PALE, UiKit.BLUE_DARK);
         back.addActionListener(e -> dashboard());
 
         top.add(back, BorderLayout.WEST);
-        top.add(
-            UiKit.label("FoundIt", 23, true, UiKit.BLUE),
-            BorderLayout.EAST
-        );
+        top.add(UiKit.label("FoundIt", 23, true, UiKit.BLUE), BorderLayout.EAST);
 
         rightArea.add(top, BorderLayout.NORTH);
 
@@ -151,11 +131,7 @@ abstract class ReportFormFrame extends JFrame {
         c.gridy = 0;
 
         name = UiKit.field();
-
-        category = new JComboBox<>(
-            new String[]{"Elektronik", "Aksesoris", "Dokumen", "Kunci", "Lainnya"}
-        );
-
+        category = new JComboBox<>(new String[]{"Elektronik", "Aksesoris", "Dokumen", "Kunci", "Lainnya"});
         category.setFont(UiKit.REG);
         category.setBackground(Color.WHITE);
 
@@ -173,20 +149,14 @@ abstract class ReportFormFrame extends JFrame {
 
         form.add(
             UiKit.fieldBlock(
-                type.equals("HILANG")
-                    ? "Lokasi Terakhir *"
-                    : "Lokasi Ditemukan *",
+                type.equals("HILANG") ? "Lokasi Terakhir *" : "Lokasi Ditemukan *",
                 location
             ),
             c
         );
 
         c.gridx = 1;
-
-        form.add(
-            UiKit.fieldBlock("Tanggal (YYYY-MM-DD) *", date),
-            c
-        );
+        form.add(UiKit.fieldBlock("Tanggal (YYYY-MM-DD) *", date), c);
 
         c.gridx = 0;
         c.gridy = 2;
@@ -200,30 +170,16 @@ abstract class ReportFormFrame extends JFrame {
 
         JScrollPane descScroll = new JScrollPane(description);
         descScroll.setPreferredSize(new Dimension(500, 150));
-        descScroll.setBorder(
-            BorderFactory.createLineBorder(
-                new Color(190, 207, 222),
-                1,
-                true
-            )
-        );
+        descScroll.setBorder(BorderFactory.createLineBorder(new Color(190, 207, 222), 1, true));
 
-        form.add(
-            UiKit.fieldBlock("Deskripsi Barang *", descScroll),
-            c
-        );
+        form.add(UiKit.fieldBlock("Deskripsi Barang *", descScroll), c);
 
         c.gridy = 3;
 
         photo = UiKit.field();
         photo.setEditable(false);
 
-        JButton choose = UiKit.button(
-            "Pilih Foto",
-            UiKit.PALE,
-            UiKit.BLUE_DARK
-        );
-
+        JButton choose = UiKit.button("Pilih Foto", UiKit.PALE, UiKit.BLUE_DARK);
         choose.addActionListener(e -> choosePhoto());
 
         JPanel photoRow = new JPanel(new BorderLayout(10, 0));
@@ -231,32 +187,17 @@ abstract class ReportFormFrame extends JFrame {
         photoRow.add(photo, BorderLayout.CENTER);
         photoRow.add(choose, BorderLayout.EAST);
 
-        form.add(
-            UiKit.fieldBlock("Foto Barang (opsional)", photoRow),
-            c
-        );
+        form.add(UiKit.fieldBlock("Foto Barang (opsional)", photoRow), c);
 
         content.add(form, BorderLayout.CENTER);
 
-        JButton reset = UiKit.button(
-            "Reset Form",
-            new Color(255, 238, 236),
-            new Color(190, 70, 60)
-        );
+        JButton reset = UiKit.button("Reset Form", new Color(255, 238, 236), new Color(190, 70, 60));
         reset.addActionListener(e -> resetForm());
 
-        JButton cancel = UiKit.button(
-            "Batal",
-            new Color(237, 241, 245),
-            UiKit.TEXT
-        );
+        JButton cancel = UiKit.button("Batal", new Color(237, 241, 245), UiKit.TEXT);
         cancel.addActionListener(e -> dashboard());
 
-        JButton submit = UiKit.button(
-            "Kirim Laporan",
-            UiKit.BLUE,
-            Color.WHITE
-        );
+        JButton submit = UiKit.button("Kirim Laporan", UiKit.BLUE, Color.WHITE);
         submit.addActionListener(e -> submit());
 
         JScrollPane sc = new JScrollPane(content);
@@ -265,15 +206,9 @@ abstract class ReportFormFrame extends JFrame {
 
         rightArea.add(sc, BorderLayout.CENTER);
 
-        JPanel footer = new JPanel(
-            new FlowLayout(FlowLayout.RIGHT, 10, 12)
-        );
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 12));
         footer.setBackground(Color.WHITE);
-        footer.setBorder(
-            BorderFactory.createMatteBorder(
-                1, 0, 0, 0, UiKit.BORDER
-            )
-        );
+        footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UiKit.BORDER));
 
         footer.add(reset);
         footer.add(cancel);
@@ -285,12 +220,7 @@ abstract class ReportFormFrame extends JFrame {
         return root;
     }
 
-    private JPanel menu(
-            String text,
-            String icon,
-            boolean active,
-            Runnable action) {
-
+    private JPanel menu(String text, String icon, boolean active, Runnable action) {
         JPanel p = new JPanel(new BorderLayout());
         p.setMaximumSize(new Dimension(220, 46));
         p.setBorder(new EmptyBorder(12, 18, 12, 10));
@@ -319,18 +249,14 @@ abstract class ReportFormFrame extends JFrame {
         date.setText(LocalDate.now().toString());
         description.setText("");
         photo.setText("");
-
         name.requestFocus();
     }
 
     private void choosePhoto() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Pilih foto barang");
-
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            photo.setText(
-                chooser.getSelectedFile().getAbsolutePath()
-            );
+            photo.setText(chooser.getSelectedFile().getAbsolutePath());
         }
     }
 
@@ -345,12 +271,10 @@ abstract class ReportFormFrame extends JFrame {
                 "Data belum lengkap",
                 JOptionPane.WARNING_MESSAGE
             );
-
             return;
         }
 
         LocalDate d;
-
         try {
             d = LocalDate.parse(date.getText().trim());
         } catch (Exception ex) {
@@ -360,7 +284,6 @@ abstract class ReportFormFrame extends JFrame {
                 "Tanggal tidak valid",
                 JOptionPane.WARNING_MESSAGE
             );
-
             return;
         }
 
@@ -376,12 +299,9 @@ abstract class ReportFormFrame extends JFrame {
             )
         );
 
-        UiKit.info(
-            this,
-            "Laporan berhasil ditambahkan untuk sesi aplikasi ini."
-        );
-
-        dashboard();
+        UiKit.info(this, "Laporan berhasil ditambahkan untuk sesi aplikasi ini.");
+        new RiwayatLaporanFrame(email, role).setVisible(true);
+        dispose();
     }
 
     private void dashboard() {
