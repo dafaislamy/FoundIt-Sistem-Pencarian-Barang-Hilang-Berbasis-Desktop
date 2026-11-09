@@ -45,11 +45,12 @@ public class RiwayatLaporanFrame extends JFrame {
 
         side.add(logo);
         side.add(menu("Dashboard", "home", false, () -> openDashboard()));
+        side.add(menu("Cari Barang", "search", false, () -> { new CariBarangFrame(email, role).setVisible(true); dispose(); }));
         side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
         side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
         side.add(menu("Riwayat Laporan", "history", true, () -> {}));
         side.add(menu("Status Klaim", "status", false, () -> openStatusKlaim()));
-        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
+        side.add(menu("Profil", "profile", false, () -> { new ProfilFrame(email, role).setVisible(true); dispose(); }));
 
         side.add(Box.createVerticalGlue());
 

@@ -44,11 +44,12 @@ public class UserDashboardFrame extends JFrame {
 
         side.add(logo);
         side.add(menu("Dashboard", "home", true, () -> {}));
+        side.add(menu("Cari Barang", "search", false, () -> openCariBarang()));
         side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
         side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
         side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
         side.add(menu("Status Klaim", "status", false, () -> openStatusKlaim()));
-        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
+        side.add(menu("Profil", "profile", false, () -> openProfil()));
         side.add(Box.createVerticalGlue());
 
         side.add(menu(
@@ -397,14 +398,19 @@ public class UserDashboardFrame extends JFrame {
         spaceButton(claim, 88, 40);
 
         claim.addActionListener(e -> {
+            JTextArea proof = new JTextArea(5, 28);
+            proof.setLineWrap(true);
+            proof.setWrapStyleWord(true);
             int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Ajukan klaim untuk barang '" + name + "'?",
-                "Klaim Barang",
-                JOptionPane.YES_NO_OPTION
+                this, new Object[]{"Jelaskan bukti kepemilikan (minimal 20 karakter):", new JScrollPane(proof)},
+                "Ajukan Klaim Barang", JOptionPane.OK_CANCEL_OPTION
             );
-            if (confirm == JOptionPane.YES_OPTION) {
-                StatusKlaimFrame.tambahKlaim(name, "Umum", loc, desc, "Diajukan dari Dashboard");
+            if (confirm == JOptionPane.OK_OPTION) {
+                if (proof.getText().trim().length() < 20) {
+                    UiKit.info(this, "Bukti kepemilikan minimal 20 karakter.");
+                    return;
+                }
+                StatusKlaimFrame.tambahKlaim(name, "Umum", loc, desc, proof.getText().trim());
                 openStatusKlaim();
             }
         });
@@ -503,6 +509,16 @@ public class UserDashboardFrame extends JFrame {
 
     private void openRegister() {
         new RegisterFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openCariBarang() {
+        new CariBarangFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openProfil() {
+        new ProfilFrame(email, role).setVisible(true);
         dispose();
     }
 }
