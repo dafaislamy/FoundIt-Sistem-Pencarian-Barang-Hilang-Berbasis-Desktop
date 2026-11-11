@@ -77,11 +77,15 @@ abstract class ReportFormFrame extends JFrame {
             new StatusKlaimFrame(email, role).setVisible(true);
             dispose();
         }));
-        side.add(menu("Lengkapi Profil", "profile", false, () -> {
-            new RegisterFrame(email, role).setVisible(true);
-            dispose();
-        }));
 
+side.add(menu("Cari Barang", "search", false, () -> {
+    new CariBarangFrame(email, role).setVisible(true);
+    dispose();
+}));
+side.add(menu("Klaim Barang", "claim", false, () -> {
+    new KlaimFrame(email, role).setVisible(true);
+    dispose();
+}));
         side.add(Box.createVerticalGlue());
 
         side.add(menu("Keluar", "return", false, () -> {

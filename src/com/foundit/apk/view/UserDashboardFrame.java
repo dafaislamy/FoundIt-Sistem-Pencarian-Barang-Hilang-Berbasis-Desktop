@@ -6,7 +6,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Dashboard pengguna dengan daftar laporan yang dapat digulir dan navigasi lengkap.
+ * Dashboard pengguna dengan daftar laporan yang dapat digulir dan 8 menu navigasi lengkap.
  */
 public class UserDashboardFrame extends JFrame {
 
@@ -26,7 +26,7 @@ public class UserDashboardFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // Sidebar Navigasi Kiri
+        // Sidebar Lengkap 8 Menu Sesuai Urutan HTML
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -44,11 +44,14 @@ public class UserDashboardFrame extends JFrame {
 
         side.add(logo);
         side.add(menu("Dashboard", "home", true, () -> {}));
+        side.add(menu("Cari Barang", "search", false, () -> openCariBarang()));
         side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
         side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
-        side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
+        side.add(menu("Klaim Barang", "claim", false, () -> openKlaim()));
         side.add(menu("Status Klaim", "status", false, () -> openStatusKlaim()));
+        side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
         side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
+
         side.add(Box.createVerticalGlue());
 
         side.add(menu(
@@ -227,8 +230,17 @@ public class UserDashboardFrame extends JFrame {
         spaceButton(found, 220, 44);
         found.addActionListener(e -> openFound());
 
+        JButton searchBtn = UiKit.button(
+            "Cari Barang",
+            UiKit.BLUE,
+            Color.WHITE
+        );
+        spaceButton(searchBtn, 150, 44);
+        searchBtn.addActionListener(e -> openCariBarang());
+
         buttons.add(lost);
         buttons.add(found);
+        buttons.add(searchBtn);
 
         actions.add(buttons, BorderLayout.CENTER);
         body.add(actions);
@@ -396,17 +408,10 @@ public class UserDashboardFrame extends JFrame {
 
         spaceButton(claim, 88, 40);
 
+        // Mengarahkan ke halaman form KlaimFrame dengan nama & lokasi barang yang sudah terisi
         claim.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Ajukan klaim untuk barang '" + name + "'?",
-                "Klaim Barang",
-                JOptionPane.YES_NO_OPTION
-            );
-            if (confirm == JOptionPane.YES_OPTION) {
-                StatusKlaimFrame.tambahKlaim(name, "Umum", loc, desc, "Diajukan dari Dashboard");
-                openStatusKlaim();
-            }
+            new KlaimFrame(email, role, name, "Lainnya", loc).setVisible(true);
+            dispose();
         });
 
         acts.add(detail);
@@ -427,8 +432,8 @@ public class UserDashboardFrame extends JFrame {
 
         JPanel p = new JPanel(new BorderLayout());
 
-        p.setMaximumSize(new Dimension(220, 46));
-        p.setBorder(new EmptyBorder(12, 18, 12, 10));
+        p.setMaximumSize(new Dimension(220, 44));
+        p.setBorder(new EmptyBorder(10, 18, 10, 10));
         p.setBackground(active ? UiKit.PALE : Color.WHITE);
 
         JLabel item = new JLabel(text);
@@ -481,6 +486,11 @@ public class UserDashboardFrame extends JFrame {
         button.setMaximumSize(new Dimension(width, height));
     }
 
+    private void openCariBarang() {
+        new CariBarangFrame(email, role).setVisible(true);
+        dispose();
+    }
+
     private void openLost() {
         new LaporHilangFrame(email, role).setVisible(true);
         dispose();
@@ -488,6 +498,11 @@ public class UserDashboardFrame extends JFrame {
 
     private void openFound() {
         new LaporDitemukanFrame(email, role).setVisible(true);
+        dispose();
+    }
+
+    private void openKlaim() {
+        new KlaimFrame(email, role).setVisible(true);
         dispose();
     }
 

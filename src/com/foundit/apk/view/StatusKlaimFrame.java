@@ -83,7 +83,14 @@ public class StatusKlaimFrame extends JFrame {
         side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
         side.add(menu("Status Klaim", "status", true, () -> {}));
         side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
-
+side.add(menu("Cari Barang", "search", false, () -> {
+    new CariBarangFrame(email, role).setVisible(true);
+    dispose();
+}));
+side.add(menu("Klaim Barang", "claim", false, () -> {
+    new KlaimFrame(email, role).setVisible(true);
+    dispose();
+}));
         side.add(Box.createVerticalGlue());
 
         side.add(menu("Keluar", "return", false, () -> {
