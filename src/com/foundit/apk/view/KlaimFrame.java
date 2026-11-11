@@ -1,8 +1,8 @@
 package com.foundit.apk.view;
 
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
 
 /**
  * Halaman Form Pengajuan Klaim Barang (Konversi dari klaim.html dan klaim.js).
@@ -74,6 +74,11 @@ public class KlaimFrame extends JFrame {
         }));
         side.add(menu("Riwayat Laporan", "history", false, () -> {
             new RiwayatLaporanFrame(email, role).setVisible(true);
+            dispose();
+        }));
+
+        side.add(menu("Profil", "profile", false, () -> {
+            new ProfilFrame(email, role).setVisible(true);
             dispose();
         }));
 

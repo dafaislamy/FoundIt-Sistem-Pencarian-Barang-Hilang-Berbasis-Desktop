@@ -7,7 +7,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Form laporan memenuhi area kerja dengan sidebar navigasi lengkap.
+ * Form laporan memenuhi area kerja dengan sidebar navigasi 7 menu.
  */
 abstract class ReportFormFrame extends JFrame {
 
@@ -31,7 +31,7 @@ abstract class ReportFormFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP 6 MENU
+        // SIDEBAR LENGKAP 7 MENU SESUAI URUTAN
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -47,6 +47,10 @@ abstract class ReportFormFrame extends JFrame {
 
         side.add(logo);
         side.add(menu("Dashboard", "home", false, () -> dashboard()));
+        side.add(menu("Cari Barang", "search", false, () -> {
+            new CariBarangFrame(email, role).setVisible(true);
+            dispose();
+        }));
         side.add(menu(
             "Lapor Barang Hilang",
             "lost",
@@ -69,23 +73,24 @@ abstract class ReportFormFrame extends JFrame {
                 }
             }
         ));
-        side.add(menu("Riwayat Laporan", "history", false, () -> {
-            new RiwayatLaporanFrame(email, role).setVisible(true);
+        side.add(menu("Klaim Barang", "claim", false, () -> {
+            new KlaimFrame(email, role).setVisible(true);
             dispose();
         }));
         side.add(menu("Status Klaim", "status", false, () -> {
             new StatusKlaimFrame(email, role).setVisible(true);
             dispose();
         }));
+        side.add(menu("Riwayat Laporan", "history", false, () -> {
+            new RiwayatLaporanFrame(email, role).setVisible(true);
+            dispose();
+        }));
 
-side.add(menu("Cari Barang", "search", false, () -> {
-    new CariBarangFrame(email, role).setVisible(true);
-    dispose();
-}));
-side.add(menu("Klaim Barang", "claim", false, () -> {
-    new KlaimFrame(email, role).setVisible(true);
-    dispose();
-}));
+        side.add(menu("Profil", "profile", false, () -> {
+            new ProfilFrame(email, role).setVisible(true);
+            dispose();
+        }));
+
         side.add(Box.createVerticalGlue());
 
         side.add(menu("Keluar", "return", false, () -> {
@@ -226,8 +231,8 @@ side.add(menu("Klaim Barang", "claim", false, () -> {
 
     private JPanel menu(String text, String icon, boolean active, Runnable action) {
         JPanel p = new JPanel(new BorderLayout());
-        p.setMaximumSize(new Dimension(220, 46));
-        p.setBorder(new EmptyBorder(12, 18, 12, 10));
+        p.setMaximumSize(new Dimension(220, 44));
+        p.setBorder(new EmptyBorder(10, 18, 10, 10));
         p.setBackground(active ? UiKit.PALE : Color.WHITE);
 
         JLabel item = new JLabel(text);

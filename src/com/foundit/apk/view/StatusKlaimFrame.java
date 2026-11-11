@@ -63,7 +63,7 @@ public class StatusKlaimFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP 6 MENU
+        // SIDEBAR LENGKAP 7 MENU SESUAI URUTAN
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -78,19 +78,16 @@ public class StatusKlaimFrame extends JFrame {
 
         side.add(logo);
         side.add(menu("Dashboard", "home", false, () -> openDashboard()));
+        side.add(menu("Cari Barang", "search", false, () -> openCariBarang()));
         side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
         side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
-        side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
+        side.add(menu("Klaim Barang", "claim", false, () -> openKlaim()));
         side.add(menu("Status Klaim", "status", true, () -> {}));
-        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
-side.add(menu("Cari Barang", "search", false, () -> {
-    new CariBarangFrame(email, role).setVisible(true);
-    dispose();
-}));
-side.add(menu("Klaim Barang", "claim", false, () -> {
-    new KlaimFrame(email, role).setVisible(true);
-    dispose();
-}));
+        side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
+        side.add(menu("Profil", "profile", false, () -> {
+            new ProfilFrame(email, role).setVisible(true);
+            dispose();
+        }));
         side.add(Box.createVerticalGlue());
 
         side.add(menu("Keluar", "return", false, () -> {
@@ -170,7 +167,7 @@ side.add(menu("Klaim Barang", "claim", false, () -> {
         headerRight.setOpaque(false);
         JButton btnAjukan = UiKit.button("+ Ajukan Klaim", UiKit.BLUE, Color.WHITE);
         spaceButton(btnAjukan, 155, 42);
-        btnAjukan.addActionListener(e -> showFormAjukanKlaim());
+        btnAjukan.addActionListener(e -> openKlaim());
         headerRight.add(btnAjukan);
 
         statusHeader.add(headerRight, BorderLayout.EAST);
@@ -216,7 +213,7 @@ side.add(menu("Klaim Barang", "claim", false, () -> {
             JButton btnEmpty = UiKit.button("Ajukan Klaim", UiKit.BLUE, Color.WHITE);
             spaceButton(btnEmpty, 145, 40);
             btnEmpty.setAlignmentX(Component.CENTER_ALIGNMENT);
-            btnEmpty.addActionListener(e -> showFormAjukanKlaim());
+            btnEmpty.addActionListener(e -> openKlaim());
 
             emptyPanel.add(emptyTitle);
             emptyPanel.add(Box.createVerticalStrut(8));
@@ -313,46 +310,10 @@ side.add(menu("Klaim Barang", "claim", false, () -> {
         return item;
     }
 
-    private void showFormAjukanKlaim() {
-        JTextField tfNama = new JTextField();
-        JComboBox<String> cbKategori = new JComboBox<>(new String[]{"Elektronik", "Aksesoris", "Dokumen", "Lainnya"});
-        JTextField tfLokasi = new JTextField();
-        JTextField tfCiri = new JTextField();
-        JTextField tfKet = new JTextField();
-
-        Object[] form = {
-            "Nama Barang:", tfNama,
-            "Kategori:", cbKategori,
-            "Lokasi Kehilangan:", tfLokasi,
-            "Ciri Khusus Barang:", tfCiri,
-            "Keterangan Tambahan:", tfKet
-        };
-
-        int opt = JOptionPane.showConfirmDialog(
-            this, form, "Ajukan Klaim Barang", JOptionPane.OK_CANCEL_OPTION
-        );
-
-        if (opt == JOptionPane.OK_OPTION) {
-            if (!tfNama.getText().trim().isEmpty() && !tfLokasi.getText().trim().isEmpty()) {
-                tambahKlaim(
-                    tfNama.getText().trim(),
-                    (String) cbKategori.getSelectedItem(),
-                    tfLokasi.getText().trim(),
-                    tfCiri.getText().trim().isEmpty() ? "-" : tfCiri.getText().trim(),
-                    tfKet.getText().trim().isEmpty() ? "-" : tfKet.getText().trim()
-                );
-                refreshKlaimList();
-                JOptionPane.showMessageDialog(this, "Pengajuan klaim berhasil dikirim!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Nama barang dan lokasi kehilangan wajib diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-            }
-        }
-    }
-
     private JPanel menu(String text, String icon, boolean active, Runnable action) {
         JPanel p = new JPanel(new BorderLayout());
-        p.setMaximumSize(new Dimension(220, 46));
-        p.setBorder(new EmptyBorder(12, 18, 12, 10));
+        p.setMaximumSize(new Dimension(220, 44));
+        p.setBorder(new EmptyBorder(10, 18, 10, 10));
         p.setBackground(active ? UiKit.PALE : Color.WHITE);
 
         JLabel item = new JLabel(text);
@@ -386,6 +347,11 @@ side.add(menu("Klaim Barang", "claim", false, () -> {
         dispose();
     }
 
+    private void openCariBarang() {
+        new CariBarangFrame(email, role).setVisible(true);
+        dispose();
+    }
+
     private void openLost() {
         new LaporHilangFrame(email, role).setVisible(true);
         dispose();
@@ -396,13 +362,13 @@ side.add(menu("Klaim Barang", "claim", false, () -> {
         dispose();
     }
 
-    private void openRiwayatLaporan() {
-        new RiwayatLaporanFrame(email, role).setVisible(true);
+    private void openKlaim() {
+        new KlaimFrame(email, role).setVisible(true);
         dispose();
     }
 
-    private void openRegister() {
-        new RegisterFrame(email, role).setVisible(true);
+    private void openRiwayatLaporan() {
+        new RiwayatLaporanFrame(email, role).setVisible(true);
         dispose();
     }
 }

@@ -50,7 +50,7 @@ public class UserDashboardFrame extends JFrame {
         side.add(menu("Klaim Barang", "claim", false, () -> openKlaim()));
         side.add(menu("Status Klaim", "status", false, () -> openStatusKlaim()));
         side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
-        side.add(menu("Lengkapi Profil", "profile", false, () -> openRegister()));
+        side.add(menu("Profil", "profile", false, () -> openProfil()));
 
         side.add(Box.createVerticalGlue());
 
@@ -408,7 +408,6 @@ public class UserDashboardFrame extends JFrame {
 
         spaceButton(claim, 88, 40);
 
-        // Mengarahkan ke halaman form KlaimFrame dengan nama & lokasi barang yang sudah terisi
         claim.addActionListener(e -> {
             new KlaimFrame(email, role, name, "Lainnya", loc).setVisible(true);
             dispose();
@@ -516,8 +515,8 @@ public class UserDashboardFrame extends JFrame {
         dispose();
     }
 
-    private void openRegister() {
-        new RegisterFrame(email, role).setVisible(true);
+    private void openProfil() {
+        new ProfilFrame(email, role).setVisible(true);
         dispose();
     }
 }

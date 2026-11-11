@@ -39,7 +39,6 @@ public class CariBarangFrame extends JFrame {
 
     private void muatDataBarang() {
         semuaBarang.clear();
-        // 4 Barang bawaan dari cari-barang.html
         semuaBarang.add(new String[]{
             "Flashdisk SanDisk 64GB", "hilang", "Elektronik", "Hilang di sekitar Fakultas Teknik."
         });
@@ -53,7 +52,6 @@ public class CariBarangFrame extends JFrame {
             "Dompet Kulit", "ditemukan", "Aksesoris", "Ditemukan di sekitar perpustakaan."
         });
 
-        // Tambahkan juga laporan yang baru diinput user selama sesi aplikasi berjalan
         for (ReportRepository.Report r : repo.findAll()) {
             String st = "HILANG".equalsIgnoreCase(r.getType()) ? "hilang" : "ditemukan";
             String kat = (r.getCategory() != null && !r.getCategory().isEmpty()) ? r.getCategory() : "Lainnya";
@@ -67,7 +65,7 @@ public class CariBarangFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP
+        // SIDEBAR LENGKAP 7 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -106,8 +104,9 @@ public class CariBarangFrame extends JFrame {
             new RiwayatLaporanFrame(email, role).setVisible(true);
             dispose();
         }));
-        side.add(menu("Lengkapi Profil", "profile", false, () -> {
-            new RegisterFrame(email, role).setVisible(true);
+        
+        side.add(menu("Profil", "profile", false, () -> {
+            new ProfilFrame(email, role).setVisible(true);
             dispose();
         }));
 
@@ -117,6 +116,7 @@ public class CariBarangFrame extends JFrame {
             new IndexFrame().setVisible(true);
             dispose();
         }));
+
         side.add(Box.createVerticalStrut(25));
 
         root.add(side, BorderLayout.WEST);
@@ -179,11 +179,9 @@ public class CariBarangFrame extends JFrame {
         searchTitle.add(UiKit.label("Temukan barang berdasarkan nama, status, atau kategori.", 13, false, UiKit.MUTED));
         searchBox.add(searchTitle, BorderLayout.NORTH);
 
-        // Baris Input, Filter Status, Filter Kategori, dan Reset (.search-filter-wrapper)
         JPanel filterRow = new JPanel(new BorderLayout(12, 0));
         filterRow.setOpaque(false);
 
-        // Input Wrapper dengan ikon kaca pembesar & tombol silang (X)
         JPanel inputWrapper = new JPanel(new BorderLayout(6, 0));
         inputWrapper.setBackground(new Color(248, 250, 252));
         inputWrapper.setBorder(BorderFactory.createCompoundBorder(
@@ -215,7 +213,6 @@ public class CariBarangFrame extends JFrame {
 
         filterRow.add(inputWrapper, BorderLayout.CENTER);
 
-        // Sebelah kanan: 2 Dropdown + 1 Tombol Reset
         JPanel controlsRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         controlsRight.setOpaque(false);
 
@@ -268,7 +265,6 @@ public class CariBarangFrame extends JFrame {
         gridWrapper.setOpaque(false);
         body.add(gridWrapper);
 
-        // EVENT LISTENER FILTER & PENCARIAN (Konversi dari cari-barang.js)
         tfSearch.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { updateSearch(); }
             public void removeUpdate(DocumentEvent e) { updateSearch(); }
@@ -291,7 +287,6 @@ public class CariBarangFrame extends JFrame {
             tfSearch.requestFocus();
         });
 
-        // Tampilkan seluruh barang saat halaman pertama kali dibuka
         filterBarang();
 
         JScrollPane sc = new JScrollPane(body);
@@ -337,7 +332,6 @@ public class CariBarangFrame extends JFrame {
         if (hasil.isEmpty()) {
             lblResultCount.setText("Tidak ada barang yang sesuai");
 
-            // Tampilan Hasil Kosong (#noResult / .no-result)
             JPanel noResultPanel = UiKit.card();
             noResultPanel.setBackground(Color.WHITE);
             noResultPanel.setBorder(new EmptyBorder(50, 20, 50, 20));
@@ -362,7 +356,7 @@ public class CariBarangFrame extends JFrame {
         } else {
             lblResultCount.setText("Menampilkan " + hasil.size() + " barang");
 
-            int cols = 2; // Ditampilkan 2 kolom agar proporsional dan lega di layar desktop
+            int cols = 2;
             int rows = (int) Math.ceil(hasil.size() / (double) cols);
             JPanel grid = new JPanel(new GridLayout(rows, cols, 18, 18));
             grid.setOpaque(false);
@@ -395,9 +389,8 @@ public class CariBarangFrame extends JFrame {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createLineBorder(new Color(237, 240, 242), 1));
 
-        // Area Visual Gambar Barang (.barang-image)
         JPanel imgBox = new JPanel(new BorderLayout());
-        imgBox.setBackground(new Color(241, 243, 245)); // #f1f3f5
+        imgBox.setBackground(new Color(241, 243, 245));
         imgBox.setPreferredSize(new Dimension(0, 140));
 
         String emoji = "📦";
@@ -411,23 +404,21 @@ public class CariBarangFrame extends JFrame {
         imgBox.add(lblEmoji, BorderLayout.CENTER);
         card.add(imgBox, BorderLayout.NORTH);
 
-        // Konten Kartu (.barang-content)
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setBorder(new EmptyBorder(18, 20, 18, 20));
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
-        // Badge Status (.status-badge)
         JLabel statusBadge = new JLabel(isHilang ? "Hilang" : "Ditemukan");
         statusBadge.setFont(new Font("Segoe UI", Font.BOLD, 11));
         statusBadge.setOpaque(true);
         statusBadge.setBorder(new EmptyBorder(4, 10, 4, 10));
         if (isHilang) {
-            statusBadge.setBackground(new Color(253, 236, 234)); // #fdecea
-            statusBadge.setForeground(new Color(231, 76, 60));   // #e74c3c
+            statusBadge.setBackground(new Color(253, 236, 234));
+            statusBadge.setForeground(new Color(231, 76, 60));
         } else {
-            statusBadge.setBackground(new Color(234, 250, 241)); // #eafaf1
-            statusBadge.setForeground(new Color(39, 174, 96));   // #27ae60
+            statusBadge.setBackground(new Color(234, 250, 241));
+            statusBadge.setForeground(new Color(39, 174, 96));
         }
         statusBadge.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -437,11 +428,10 @@ public class CariBarangFrame extends JFrame {
         JLabel lblDesc = UiKit.label(deskripsi, 13, false, UiKit.MUTED);
         lblDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Tag Kategori (.category)
         JLabel catBadge = new JLabel(kategori);
         catBadge.setFont(new Font("Segoe UI", Font.BOLD, 11));
         catBadge.setOpaque(true);
-        catBadge.setBackground(new Color(241, 247, 252)); // #f1f7fc
+        catBadge.setBackground(new Color(241, 247, 252));
         catBadge.setForeground(UiKit.BLUE);
         catBadge.setBorder(new EmptyBorder(4, 9, 4, 9));
         catBadge.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -455,7 +445,6 @@ public class CariBarangFrame extends JFrame {
         content.add(catBadge);
         content.add(Box.createVerticalStrut(16));
 
-        // Tombol Aksi (.barang-actions: Lihat Detail & Klaim)
         JPanel actions = new JPanel(new GridLayout(1, isHilang ? 1 : 2, 10, 0));
         actions.setOpaque(false);
         actions.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -476,7 +465,6 @@ public class CariBarangFrame extends JFrame {
         });
         actions.add(btnDetail);
 
-        // Jika status barang "Ditemukan", tampilkan juga tombol Klaim seperti di cari-barang.html
         if (!isHilang) {
             JButton btnKlaim = UiKit.button("Klaim", new Color(39, 174, 96), Color.WHITE);
             btnKlaim.setPreferredSize(new Dimension(0, 38));
