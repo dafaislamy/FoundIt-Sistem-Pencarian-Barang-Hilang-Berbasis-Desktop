@@ -8,7 +8,7 @@ import java.util.List;
 
 public class AdminDAO extends AbstractDAO<Admin> {
 
-    private static final String SELECT = "SELECT id, nama, email, no_telp, created_at FROM admins";
+    private static final String SELECT = "SELECT id, nama, email, password, no_telp, created_at FROM admins";
 
     @Override
     protected String baseSelect() {
@@ -36,6 +36,7 @@ public class AdminDAO extends AbstractDAO<Admin> {
         a.setId(rs.getString("id"));
         a.setFullName(rs.getString("nama"));
         a.setEmail(rs.getString("email"));
+        a.setPasswordHash(rs.getString("password"));
         a.setPhone(rs.getString("no_telp"));
         a.setCreatedAt(timestamp(rs, "created_at"));
         return a;

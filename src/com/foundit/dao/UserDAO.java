@@ -9,7 +9,7 @@ import java.util.List;
 public class UserDAO extends AbstractDAO<User> {
 
     private static final String SELECT =
-            "SELECT id, nama, nomor_identitas, email, no_telp, role, created_at FROM users";
+            "SELECT id, nama, nomor_identitas, email, password, no_telp, role, created_at FROM users";
 
     @Override
     protected String baseSelect() {
@@ -38,6 +38,7 @@ public class UserDAO extends AbstractDAO<User> {
         u.setFullName(rs.getString("nama"));
         u.setIdentityNumber(rs.getString("nomor_identitas"));
         u.setEmail(rs.getString("email"));
+        u.setPasswordHash(rs.getString("password"));
         u.setPhone(rs.getString("no_telp"));
         u.setRole(rs.getString("role"));
         u.setCreatedAt(timestamp(rs, "created_at"));
