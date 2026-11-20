@@ -257,7 +257,7 @@ public class LoginFrame extends JFrame {
                 Session.login(user);
                 UiKit.info(this, "Selamat datang, " + user.getFullName() + "!");
                 dispose();
-                new MainFrame().setVisible(true);
+                new UserDashboardFrame().setVisible(true);
             }
         } catch (ServiceException ex) {
             UiKit.warn(this, ex.getMessage());
