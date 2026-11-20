@@ -7,28 +7,28 @@ import java.awt.*;
 /**
  * Komponen visual bersama dengan palet yang mengikuti website FoundIt.
  */
-final class UiKit {
+public final class UiKit {
 
-    static final Color BLUE = new Color(52, 152, 219);
-    static final Color BLUE_DARK = new Color(44, 62, 80);
-    static final Color BLUE_HOVER = new Color(41, 128, 185);
+    public static final Color BLUE = new Color(52, 152, 219);
+    public static final Color BLUE_DARK = new Color(44, 62, 80);
+    public static final Color BLUE_HOVER = new Color(41, 128, 185);
 
-    static final Color SKY = new Color(169, 231, 255);
-    static final Color BG = new Color(247, 249, 252);
-    static final Color PALE = new Color(234, 245, 252);
+    public static final Color SKY = new Color(169, 231, 255);
+    public static final Color BG = new Color(247, 249, 252);
+    public static final Color PALE = new Color(234, 245, 252);
 
-    static final Color TEXT = new Color(44, 62, 80);
-    static final Color MUTED = new Color(119, 136, 153);
-    static final Color GREEN = new Color(46, 204, 113);
-    static final Color BORDER = new Color(218, 228, 237);
+    public static final Color TEXT = new Color(44, 62, 80);
+    public static final Color MUTED = new Color(119, 136, 153);
+    public static final Color GREEN = new Color(46, 204, 113);
+    public static final Color BORDER = new Color(218, 228, 237);
 
-    static final Font REG = new Font("Segoe UI", Font.PLAIN, 14);
-    static final Font MED = new Font("Segoe UI", Font.BOLD, 14);
+    public static final Font REG = new Font("Segoe UI", Font.PLAIN, 14);
+    public static final Font MED = new Font("Segoe UI", Font.BOLD, 14);
 
     private UiKit() {
     }
 
-    static void frame(JFrame f, String title, int w, int h) {
+    public static void frame(JFrame f, String title, int w, int h) {
         f.setTitle(title);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setSize(w, h);
@@ -36,7 +36,7 @@ final class UiKit {
         f.setLocationRelativeTo(null);
     }
 
-    static JPanel gradient(Color a, Color b) {
+    public static JPanel gradient(Color a, Color b) {
         return new JPanel() {
 
             protected void paintComponent(Graphics g) {
@@ -61,7 +61,7 @@ final class UiKit {
         };
     }
 
-    static JPanel card() {
+    public static JPanel card() {
         JPanel p = new JPanel();
 
         p.setBackground(Color.WHITE);
@@ -77,7 +77,7 @@ final class UiKit {
         return p;
     }
 
-    static JButton button(String text, Color bg, Color fg) {
+    public static JButton button(String text, Color bg, Color fg) {
         JButton b = new JButton(text) {
 
             protected void paintComponent(Graphics g) {
@@ -120,7 +120,7 @@ final class UiKit {
         return b;
     }
 
-    static JLabel label(String s, int size, boolean bold, Color c) {
+    public static JLabel label(String s, int size, boolean bold, Color c) {
         JLabel l = new JLabel(s);
 
         l.setFont(
@@ -136,7 +136,7 @@ final class UiKit {
         return l;
     }
 
-    static JTextField field() {
+    public static JTextField field() {
         JTextField f = new JTextField();
 
         f.setFont(REG);
@@ -157,7 +157,7 @@ final class UiKit {
         return f;
     }
 
-    static JPasswordField password() {
+    public static JPasswordField password() {
         JPasswordField f = new JPasswordField();
 
         f.setFont(REG);
@@ -177,7 +177,7 @@ final class UiKit {
         return f;
     }
 
-    static JPanel fieldBlock(String title, JComponent input) {
+    public static JPanel fieldBlock(String title, JComponent input) {
         JPanel p = new JPanel();
 
         p.setOpaque(false);
@@ -201,7 +201,7 @@ final class UiKit {
      * Ikon vektor sederhana agar tidak berubah menjadi glyph/kotak
      * karena font emoji.
      */
-    static Icon icon(String kind, Color color, int size) {
+    public static Icon icon(String kind, Color color, int size) {
         return new Icon() {
 
             public int getIconWidth() {
@@ -356,7 +356,7 @@ final class UiKit {
         };
     }
 
-    static JLabel iconLabel(
+    public static JLabel iconLabel(
             String text, String kind, int size, Color color) {
 
         JLabel l = new JLabel(
@@ -372,14 +372,14 @@ final class UiKit {
         return l;
     }
 
-    static JLabel logo(int size) {
+    public static JLabel logo(int size) {
         JLabel l = label("Found", size, true, BLUE_DARK);
         JLabel it = label("It", size, true, BLUE);
 
         return l;
     }
 
-    static JPanel header(String title, String subtitle) {
+    public static JPanel header(String title, String subtitle) {
         JPanel p = new JPanel();
 
         p.setOpaque(false);
@@ -392,7 +392,7 @@ final class UiKit {
         return p;
     }
 
-    static void info(Component parent, String message) {
+    public static void info(Component parent, String message) {
         JOptionPane.showMessageDialog(
             parent,
             message,

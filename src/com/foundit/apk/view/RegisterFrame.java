@@ -1,12 +1,16 @@
 package com.foundit.apk.view;
 
+import com.foundit.apk.controller.RegisterController;
 import java.awt.*;
-import java.io.File;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Halaman Lengkapi Profil / Registrasi Data Mahasiswa.
+ * Halaman Lengkapi Profil / Registrasi Data Mahasiswa (View murni).
  */
 public class RegisterFrame extends JFrame {
 
@@ -14,30 +18,35 @@ public class RegisterFrame extends JFrame {
     private JTextField tfNama, tfNim, tfJurusan, tfEmail, tfNoHp;
     private JComboBox<String> cbFakultas, cbAngkatan;
     private JLabel lblFotoPath;
-    private String selectedPhotoPath = "";
+    private JButton btnChoosePhoto, btnSubmit;
+    private final Map<String, Runnable> menuActions = new HashMap<>();
 
-    // Konstruktor default (jika dipanggil dari halaman Login)
     public RegisterFrame() {
-        this("user@campus.ac.id", "USER");
+        this("user@campus.ac.id", "USER", true);
     }
 
-    // Konstruktor dengan parameter (jika dipanggil dari Sidebar kiri Dashboard)
     public RegisterFrame(String email, String role) {
+        this(email, role, true);
+    }
+
+    public RegisterFrame(String email, String role, boolean bindDefaultController) {
         this.email = email;
         this.role = role;
 
         UiKit.frame(this, "FoundIt | Lengkapi Profil", 1200, 760);
         setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
+
+        if (bindDefaultController) {
+            new RegisterController(this, email, role).bind();
+        }
     }
 
     private JPanel build() {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // ==========================================
         // SIDEBAR NAVIGASI KIRI
-        // ==========================================
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -51,45 +60,25 @@ public class RegisterFrame extends JFrame {
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
 
         side.add(logo);
-        side.add(menu("Dashboard", "home", false, () -> {
-            new UserDashboardFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Lapor Barang Hilang", "lost", false, () -> {
-            new LaporHilangFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> {
-            new LaporDitemukanFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Riwayat Laporan", "history", false, () -> {
-            new RiwayatLaporanFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Status Klaim", "status", false, () -> {
-            new StatusKlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Dashboard", "home", false, () -> triggerMenu("Dashboard")));
+        side.add(menu("Lapor Barang Hilang", "lost", false, () -> triggerMenu("Lapor Barang Hilang")));
+        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> triggerMenu("Lapor Barang Ditemukan")));
+        side.add(menu("Riwayat Laporan", "history", false, () -> triggerMenu("Riwayat Laporan")));
+        side.add(menu("Status Klaim", "status", false, () -> triggerMenu("Status Klaim")));
         side.add(menu("Lengkapi Profil", "profile", true, () -> {}));
 
         side.add(Box.createVerticalGlue());
 
-        side.add(menu("Keluar", "return", false, () -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Keluar", "return", false, () -> triggerMenu("Keluar")));
         side.add(Box.createVerticalStrut(25));
 
         root.add(side, BorderLayout.WEST);
 
-        // ==========================================
-        // KONTEN UTAMA (2 KOLOM: INFO KIRI & FORM KANAN)
-        // ==========================================
+        // KONTEN UTAMA
         JPanel mainContent = new JPanel(new GridLayout(1, 2));
         mainContent.setOpaque(false);
 
-        // 1. Panel Info Gradien (.register-info)
+        // 1. Panel Info Gradien
         JPanel infoPanel = UiKit.gradient(new Color(44, 62, 80), UiKit.BLUE);
         infoPanel.setBorder(new EmptyBorder(50, 45, 50, 45));
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
@@ -119,7 +108,7 @@ public class RegisterFrame extends JFrame {
 
         mainContent.add(infoPanel);
 
-        // 2. Panel Form Putih (.register-box)
+        // 2. Panel Form Putih
         JPanel rightBox = new JPanel(new BorderLayout());
         rightBox.setBackground(Color.WHITE);
         rightBox.setBorder(new EmptyBorder(35, 45, 35, 45));
@@ -138,7 +127,7 @@ public class RegisterFrame extends JFrame {
         formPanel.setOpaque(false);
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
 
-        // Foto Profil (.photo-section)
+        // Foto Profil
         JPanel photoSection = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
         photoSection.setOpaque(false);
         photoSection.setBorder(BorderFactory.createCompoundBorder(
@@ -159,8 +148,7 @@ public class RegisterFrame extends JFrame {
         photoAction.add(UiKit.label("Foto Profil", 13, true, UiKit.TEXT));
         photoAction.add(Box.createVerticalStrut(5));
 
-        JButton btnChoosePhoto = UiKit.button("Pilih File Foto", UiKit.PALE, UiKit.BLUE_DARK);
-        btnChoosePhoto.addActionListener(e -> choosePhoto());
+        btnChoosePhoto = UiKit.button("Pilih File Foto", UiKit.PALE, UiKit.BLUE_DARK);
         photoAction.add(btnChoosePhoto);
 
         lblFotoPath = UiKit.label("Opsional. Format JPG atau PNG.", 11, false, new Color(153, 153, 153));
@@ -171,33 +159,8 @@ public class RegisterFrame extends JFrame {
         formPanel.add(photoSection);
         formPanel.add(Box.createVerticalStrut(15));
 
-        // Nama Lengkap (otomatis huruf awal kapital sesuai register.js)
+        // Nama Lengkap
         tfNama = UiKit.field();
-        tfNama.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent e) {
-                String text = tfNama.getText();
-                if (!text.isEmpty()) {
-                    StringBuilder sb = new StringBuilder();
-                    boolean cap = true;
-                    for (char c : text.toCharArray()) {
-                        if (Character.isWhitespace(c)) {
-                            cap = true;
-                            sb.append(c);
-                        } else if (cap) {
-                            sb.append(Character.toUpperCase(c));
-                            cap = false;
-                        } else {
-                            sb.append(c);
-                        }
-                    }
-                    if (!tfNama.getText().equals(sb.toString())) {
-                        int pos = tfNama.getCaretPosition();
-                        tfNama.setText(sb.toString());
-                        try { tfNama.setCaretPosition(Math.min(pos, sb.length())); } catch (Exception ignored) {}
-                    }
-                }
-            }
-        });
         formPanel.add(UiKit.fieldBlock("Nama Lengkap", tfNama));
         formPanel.add(Box.createVerticalStrut(12));
 
@@ -249,9 +212,8 @@ public class RegisterFrame extends JFrame {
         formPanel.add(Box.createVerticalStrut(20));
 
         // Tombol Simpan & Lanjutkan
-        JButton btnSubmit = UiKit.button("Simpan & Lanjutkan", UiKit.BLUE, Color.WHITE);
+        btnSubmit = UiKit.button("Simpan & Lanjutkan", UiKit.BLUE, Color.WHITE);
         btnSubmit.setPreferredSize(new Dimension(0, 44));
-        btnSubmit.addActionListener(e -> handleRegister());
 
         JPanel btnWrap = new JPanel(new BorderLayout());
         btnWrap.setOpaque(false);
@@ -325,33 +287,35 @@ public class RegisterFrame extends JFrame {
         return p;
     }
 
-    private void choosePhoto() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Pilih Foto Profil");
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = chooser.getSelectedFile();
-            selectedPhotoPath = file.getAbsolutePath();
-            lblFotoPath.setText(file.getName());
-            lblFotoPath.setForeground(new Color(39, 174, 96));
+    private void triggerMenu(String menuName) {
+        Runnable r = menuActions.get(menuName);
+        if (r != null) {
+            r.run();
         }
     }
 
-    private void handleRegister() {
-        String nama = tfNama.getText().trim();
-        String nim = tfNim.getText().trim();
-        String fakultas = (String) cbFakultas.getSelectedItem();
-        String jurusan = tfJurusan.getText().trim();
-        String angkatan = (String) cbAngkatan.getSelectedItem();
-        String inputEmail = tfEmail.getText().trim();
-        String nohp = tfNoHp.getText().trim();
-
-        if (nama.isEmpty() || nim.isEmpty() || "Pilih Fakultas".equals(fakultas) || jurusan.isEmpty() || "Pilih Angkatan".equals(angkatan) || inputEmail.isEmpty() || nohp.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Harap lengkapi semua kolom data mahasiswa!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        JOptionPane.showMessageDialog(this, "Profil berhasil disimpan! Selamat datang, " + nama);
-        new UserDashboardFrame(inputEmail, role).setVisible(true);
-        dispose();
+    public void setMenuAction(String menuName, Runnable action) {
+        menuActions.put(menuName, action);
     }
+
+    public String getNama() { return tfNama.getText(); }
+    public void setNama(String text) { tfNama.setText(text); }
+    public int getNamaCaretPosition() { return tfNama.getCaretPosition(); }
+    public void setNamaCaretPosition(int pos) { try { tfNama.setCaretPosition(pos); } catch (Exception ignored) {} }
+
+    public String getNim() { return tfNim.getText().trim(); }
+    public String getFakultas() { return (String) cbFakultas.getSelectedItem(); }
+    public String getJurusan() { return tfJurusan.getText().trim(); }
+    public String getAngkatan() { return (String) cbAngkatan.getSelectedItem(); }
+    public String getEmail() { return tfEmail.getText().trim(); }
+    public String getNoHp() { return tfNoHp.getText().trim(); }
+
+    public void setFotoPath(String fileName, Color color) {
+        lblFotoPath.setText(fileName);
+        lblFotoPath.setForeground(color);
+    }
+
+    public void addChoosePhotoListener(ActionListener l) { btnChoosePhoto.addActionListener(l); }
+    public void addNamaKeyListener(KeyAdapter k) { tfNama.addKeyListener(k); }
+    public void addSubmitListener(ActionListener l) { btnSubmit.addActionListener(l); }
 }

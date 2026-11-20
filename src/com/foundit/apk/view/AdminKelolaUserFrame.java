@@ -1,27 +1,37 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.*;
+import com.foundit.apk.controller.AdminKelolaUserController;
+import com.foundit.apk.model.User;
 import java.awt.*;
-import java.util.ArrayList;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+/**
+ * Kelola Pengguna - FoundIt Admin (View murni).
+ */
 public class AdminKelolaUserFrame extends JFrame {
-    private List<User> userList = new ArrayList<>();
+
     private DefaultTableModel tableModel;
+    private JTable table;
+    private JButton btnTambah;
+    private Consumer<Integer> menuNavigationHandler;
 
     public AdminKelolaUserFrame() {
+        this(true);
+    }
+
+    public AdminKelolaUserFrame(boolean bindDefaultController) {
         setTitle("Kelola Pengguna - FoundIt Admin");
         setSize(1150, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-
-        userList.add(new User("U1", "Budi Santoso", "220101002", "budi@campus.ac.id", "pass", "081234567890", Role.MAHASISWA));
-        userList.add(new User("U2", "Sarah Amelia", "230102045", "sarah@campus.ac.id", "pass", "089876543211", Role.MAHASISWA));
-        userList.add(new User("U3", "Dimas Anggara", "210103099", "dimas@campus.ac.id", "pass", "085211223344", Role.MAHASISWA));
 
         JPanel sidebar = new JPanel();
         sidebar.setBackground(Color.WHITE);
@@ -64,23 +74,9 @@ public class AdminKelolaUserFrame extends JFrame {
             }
 
             final int index = i;
-btnMenu.addActionListener(e -> {
-                dispose(); // Menutup frame yang sedang aktif
-                
-                if (index == 0) {
-                    new AdminDashboardFrame().setVisible(true);
-                } else if (index == 1) {
-                    new AdminKelolaKategoriFrame().setVisible(true);
-                } else if (index == 2) {
-                    new AdminKelolaLaporanFrame().setVisible(true);
-                } else if (index == 3) {
-                    new AdminKelolaUserFrame().setVisible(true);
-                } else if (index == 4) {
-                    new AdminUbahStatusFrame().setVisible(true);
-                } else if (index == 5) {
-                    new AdminVerifikasiKlaimFrame().setVisible(true);
-                } else if (index == 6) {
-                    new AdminVerifikasiLaporanFrame().setVisible(true);
+            btnMenu.addActionListener(e -> {
+                if (menuNavigationHandler != null) {
+                    menuNavigationHandler.accept(index);
                 }
             });
 
@@ -120,7 +116,7 @@ btnMenu.addActionListener(e -> {
         JComboBox<String> cbFakultas = new JComboBox<>(new String[]{"Semua Fakultas", "Fakultas Teknik", "Fakultas Ekonomi", "Fakultas Ilmu Komputer"});
         JComboBox<String> cbStatus = new JComboBox<>(new String[]{"Semua Status", "Aktif", "Nonaktif"});
         
-        JButton btnTambah = new JButton("+ Tambah");
+        btnTambah = new JButton("+ Tambah");
         btnTambah.setBackground(new Color(52, 152, 219));
         btnTambah.setForeground(Color.WHITE);
         btnTambah.setFocusPainted(false);
@@ -134,63 +130,21 @@ btnMenu.addActionListener(e -> {
 
         String[] columns = {"NIM & Nama", "Fakultas / Prodi", "Kontak Email & Telp", "Status Akun", "Aksi"};
         tableModel = new DefaultTableModel(columns, 0);
-        refreshTable();
 
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setRowHeight(60);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-
-        btnTambah.addActionListener(e -> {
-            JTextField namaField = new JTextField();
-            JTextField nimField = new JTextField();
-            JTextField emailField = new JTextField();
-            JTextField telpField = new JTextField();
-            Object[] message = {
-                "Nama Lengkap:", namaField,
-                "NIM:", nimField,
-                "Email:", emailField,
-                "No Telepon:", telpField
-            };
-            int option = JOptionPane.showConfirmDialog(null, message, "Tambah Pengguna Baru", JOptionPane.OK_CANCEL_OPTION);
-            if (option == JOptionPane.OK_OPTION) {
-                if (!namaField.getText().trim().isEmpty() && !nimField.getText().trim().isEmpty()) {
-                    userList.add(new User("U" + (userList.size() + 1), namaField.getText(), nimField.getText(), emailField.getText(), "pass", telpField.getText(), Role.MAHASISWA));
-                    refreshTable();
-                    JOptionPane.showMessageDialog(null, "Pengguna baru berhasil ditambahkan!");
-                } else {
-                    JOptionPane.showMessageDialog(null, "Nama dan NIM wajib diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-                }
-            }
-        });
-
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = table.rowAtPoint(evt.getPoint());
-                int col = table.columnAtPoint(evt.getPoint());
-                if (col == 4 && row >= 0) {
-                    String[] options = {"Ubah Status (Aktif/Nonaktif)", "Hapus User", "Batal"};
-                    int choice = JOptionPane.showOptionDialog(null, "Pilih aksi untuk pengguna ini:", "Kelola User",
-                            JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-                    if (choice == 0) {
-                        JOptionPane.showMessageDialog(null, "Status akun pengguna berhasil diubah!");
-                    } else if (choice == 1) {
-                        int confirm = JOptionPane.showConfirmDialog(null, "Yakin ingin menghapus pengguna ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-                        if (confirm == JOptionPane.YES_OPTION) {
-                            userList.remove(row);
-                            refreshTable();
-                            JOptionPane.showMessageDialog(null, "Pengguna berhasil dihapus!");
-                        }
-                    }
-                }
-            }
-        });
 
         centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
         mainLayout.add(centerPanel, BorderLayout.CENTER);
         add(mainLayout);
+
+        if (bindDefaultController) {
+            new AdminKelolaUserController(this).bind();
+        }
     }
 
-    private void refreshTable() {
+    public void renderTable(List<User> userList) {
         tableModel.setRowCount(0);
         for (User u : userList) {
             tableModel.addRow(new Object[]{
@@ -203,7 +157,24 @@ btnMenu.addActionListener(e -> {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminKelolaUserFrame().setVisible(true));
+    public void addTambahListener(ActionListener l) {
+        btnTambah.addActionListener(l);
+    }
+
+    public void addTableActionClickListener(Consumer<Integer> onRowClicked) {
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                int row = table.rowAtPoint(evt.getPoint());
+                int col = table.columnAtPoint(evt.getPoint());
+                if (col == 4 && row >= 0) {
+                    onRowClicked.accept(row);
+                }
+            }
+        });
+    }
+
+    public void setMenuNavigationHandler(Consumer<Integer> handler) {
+        this.menuNavigationHandler = handler;
     }
 }

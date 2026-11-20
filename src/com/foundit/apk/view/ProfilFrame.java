@@ -1,40 +1,41 @@
 package com.foundit.apk.view;
 
+import com.foundit.apk.controller.ProfilController;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Halaman Profil Pengguna (Konversi dari profil.html, profil.js, dan profil.css).
+ * Halaman Profil Pengguna (View murni).
  */
 public class ProfilFrame extends JFrame {
 
     private final String email, role;
-
-    // Data profil tersimpan di memori selama aplikasi berjalan (menggantikan localStorage "dataUser" di profil.js)
-    public static String namaUser = "Mahasiswa FoundIt";
-    public static String nimUser = "25071100361";
-    public static String fakultasUser = "Fakultas Teknik";
-    public static String jurusanUser = "S1 Teknik Informatika";
-    public static String angkatanUser = "2025";
-    public static String emailUser = "";
-    public static String nohpUser = "081234567890";
-
     private JLabel lblTopName, lblTopInitial;
     private JLabel lblPhoto, lblNamaProfil, lblNimProfil;
     private JLabel valNama, valNim, valFakultas, valJurusan, valAngkatan, valEmail, valNohp;
+    private JButton btnEdit;
+    private final Map<String, Runnable> menuActions = new HashMap<>();
 
     public ProfilFrame(String email, String role) {
+        this(email, role, true);
+    }
+
+    public ProfilFrame(String email, String role, boolean bindDefaultController) {
         this.email = email;
         this.role = role;
-
-        if (emailUser.isEmpty() && email != null && !email.isEmpty()) {
-            emailUser = email;
-        }
 
         UiKit.frame(this, "FoundIt | Profil Saya", 1200, 760);
         setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
+
+        if (bindDefaultController) {
+            new ProfilController(this, email, role).bind();
+        }
     }
 
     private JPanel build() {
@@ -55,42 +56,18 @@ public class ProfilFrame extends JFrame {
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
 
         side.add(logo);
-        side.add(menu("Dashboard", "home", false, () -> {
-            new UserDashboardFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Cari Barang", "search", false, () -> {
-            new CariBarangFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Lapor Barang Hilang", "lost", false, () -> {
-            new LaporHilangFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> {
-            new LaporDitemukanFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Klaim Barang", "claim", false, () -> {
-            new KlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Status Klaim", "status", false, () -> {
-            new StatusKlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Riwayat Laporan", "history", false, () -> {
-            new RiwayatLaporanFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Dashboard", "home", false, () -> triggerMenu("Dashboard")));
+        side.add(menu("Cari Barang", "search", false, () -> triggerMenu("Cari Barang")));
+        side.add(menu("Lapor Barang Hilang", "lost", false, () -> triggerMenu("Lapor Barang Hilang")));
+        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> triggerMenu("Lapor Barang Ditemukan")));
+        side.add(menu("Klaim Barang", "claim", false, () -> triggerMenu("Klaim Barang")));
+        side.add(menu("Status Klaim", "status", false, () -> triggerMenu("Status Klaim")));
+        side.add(menu("Riwayat Laporan", "history", false, () -> triggerMenu("Riwayat Laporan")));
         side.add(menu("Profil", "profile", true, () -> {}));
 
         side.add(Box.createVerticalGlue());
 
-        side.add(menu("Keluar", "return", false, () -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Keluar", "return", false, () -> triggerMenu("Keluar")));
         side.add(Box.createVerticalStrut(25));
 
         root.add(side, BorderLayout.WEST);
@@ -111,8 +88,7 @@ public class ProfilFrame extends JFrame {
         JPanel profile = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         profile.setOpaque(false);
 
-        String init = getInitial(namaUser);
-        lblTopInitial = UiKit.label(init, 16, true, Color.WHITE);
+        lblTopInitial = UiKit.label("U", 16, true, Color.WHITE);
         lblTopInitial.setHorizontalAlignment(SwingConstants.CENTER);
         lblTopInitial.setOpaque(true);
         lblTopInitial.setBackground(UiKit.BLUE);
@@ -122,7 +98,7 @@ public class ProfilFrame extends JFrame {
         JPanel names = new JPanel();
         names.setOpaque(false);
         names.setLayout(new BoxLayout(names, BoxLayout.Y_AXIS));
-        lblTopName = UiKit.label(namaUser, 13, true, UiKit.TEXT);
+        lblTopName = UiKit.label("Pengguna FoundIt", 13, true, UiKit.TEXT);
         names.add(lblTopName);
         names.add(UiKit.label("User", 11, false, UiKit.MUTED));
         profile.add(names);
@@ -130,13 +106,13 @@ public class ProfilFrame extends JFrame {
         top.add(profile, BorderLayout.EAST);
         main.add(top, BorderLayout.NORTH);
 
-        // BODY CONTENT (.profile-page)
+        // BODY CONTENT
         JPanel body = new JPanel();
         body.setOpaque(false);
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(22, 0, 10, 8));
 
-        // 1. HEADER PROFIL (.profile-header)
+        // 1. HEADER PROFIL
         JPanel profileHeader = UiKit.card();
         profileHeader.setBackground(Color.WHITE);
         profileHeader.setBorder(BorderFactory.createCompoundBorder(
@@ -146,7 +122,7 @@ public class ProfilFrame extends JFrame {
         profileHeader.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 0));
         profileHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 135));
 
-        lblPhoto = UiKit.label(init, 32, true, Color.WHITE);
+        lblPhoto = UiKit.label("U", 32, true, Color.WHITE);
         lblPhoto.setHorizontalAlignment(SwingConstants.CENTER);
         lblPhoto.setOpaque(true);
         lblPhoto.setBackground(UiKit.BLUE);
@@ -156,8 +132,8 @@ public class ProfilFrame extends JFrame {
         JPanel headerIdentity = new JPanel();
         headerIdentity.setOpaque(false);
         headerIdentity.setLayout(new BoxLayout(headerIdentity, BoxLayout.Y_AXIS));
-        lblNamaProfil = UiKit.label(namaUser, 22, true, UiKit.TEXT);
-        lblNimProfil = UiKit.label(nimUser, 14, false, UiKit.MUTED);
+        lblNamaProfil = UiKit.label("Mahasiswa FoundIt", 22, true, UiKit.TEXT);
+        lblNimProfil = UiKit.label("25071100361", 14, false, UiKit.MUTED);
         headerIdentity.add(lblNamaProfil);
         headerIdentity.add(Box.createVerticalStrut(6));
         headerIdentity.add(lblNimProfil);
@@ -166,7 +142,7 @@ public class ProfilFrame extends JFrame {
         body.add(profileHeader);
         body.add(Box.createVerticalStrut(22));
 
-        // 2. KARTU INFORMASI PROFIL (.profile-card)
+        // 2. KARTU INFORMASI PROFIL
         JPanel profileCard = UiKit.card();
         profileCard.setBackground(Color.WHITE);
         profileCard.setBorder(BorderFactory.createCompoundBorder(
@@ -175,7 +151,6 @@ public class ProfilFrame extends JFrame {
         ));
         profileCard.setLayout(new BorderLayout(0, 25));
 
-        // Header Kartu (.profile-card-header)
         JPanel cardHeader = new JPanel(new BorderLayout());
         cardHeader.setOpaque(false);
 
@@ -189,25 +164,23 @@ public class ProfilFrame extends JFrame {
 
         JPanel chRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         chRight.setOpaque(false);
-        JButton btnEdit = UiKit.button("Edit Profil", UiKit.BLUE, Color.WHITE);
+        btnEdit = UiKit.button("Edit Profil", UiKit.BLUE, Color.WHITE);
         spaceButton(btnEdit, 130, 40);
-        btnEdit.addActionListener(e -> showEditDialog());
         chRight.add(btnEdit);
         cardHeader.add(chRight, BorderLayout.EAST);
 
         profileCard.add(cardHeader, BorderLayout.NORTH);
 
-        // Grid Informasi Profil (.profile-info-grid: 2 kolom x 4 baris)
         JPanel infoGrid = new JPanel(new GridLayout(4, 2, 18, 18));
         infoGrid.setOpaque(false);
 
-        valNama = UiKit.label(namaUser, 15, true, UiKit.TEXT);
-        valNim = UiKit.label(nimUser, 15, true, UiKit.TEXT);
-        valFakultas = UiKit.label(fakultasUser, 15, true, UiKit.TEXT);
-        valJurusan = UiKit.label(jurusanUser, 15, true, UiKit.TEXT);
-        valAngkatan = UiKit.label(angkatanUser, 15, true, UiKit.TEXT);
-        valEmail = UiKit.label(emailUser.isEmpty() ? "-" : emailUser, 15, true, UiKit.TEXT);
-        valNohp = UiKit.label(nohpUser, 15, true, UiKit.TEXT);
+        valNama = UiKit.label("-", 15, true, UiKit.TEXT);
+        valNim = UiKit.label("-", 15, true, UiKit.TEXT);
+        valFakultas = UiKit.label("-", 15, true, UiKit.TEXT);
+        valJurusan = UiKit.label("-", 15, true, UiKit.TEXT);
+        valAngkatan = UiKit.label("-", 15, true, UiKit.TEXT);
+        valEmail = UiKit.label("-", 15, true, UiKit.TEXT);
+        valNohp = UiKit.label("-", 15, true, UiKit.TEXT);
 
         infoGrid.add(createInfoItem("Nama Lengkap", valNama));
         infoGrid.add(createInfoItem("NIM", valNim));
@@ -217,7 +190,6 @@ public class ProfilFrame extends JFrame {
         infoGrid.add(createInfoItem("Email", valEmail));
         infoGrid.add(createInfoItem("Nomor WhatsApp", valNohp));
 
-        // Panel kosong untuk pengisi sel ke-8 agar proporsi grid 2 kolom tetap rapi
         JPanel emptyCell = new JPanel();
         emptyCell.setOpaque(false);
         infoGrid.add(emptyCell);
@@ -237,24 +209,26 @@ public class ProfilFrame extends JFrame {
         return root;
     }
 
-    private JPanel createInfoItem(String labelText, JLabel valueLabel) {
-        // Kotak Item Informasi (.info-item)
-        JPanel item = new JPanel();
-        item.setBackground(new Color(247, 249, 252)); // #f7f9fc
-        item.setBorder(new EmptyBorder(16, 18, 16, 18));
-        item.setLayout(new BoxLayout(item, BoxLayout.Y_AXIS));
+    public void updateProfileDisplay(String nama, String nim, String fakultas, String jurusan, String angkatan, String email, String nohp, String initial) {
+        lblTopInitial.setText(initial);
+        lblTopName.setText(nama);
+        lblPhoto.setText(initial);
+        lblNamaProfil.setText(nama);
+        lblNimProfil.setText(nim);
 
-        JLabel lbl = UiKit.label(labelText, 13, false, new Color(127, 140, 141)); // #7f8c8d
-        item.add(lbl);
-        item.add(Box.createVerticalStrut(7));
-        item.add(valueLabel);
-
-        return item;
+        valNama.setText(nama);
+        valNim.setText(nim);
+        valFakultas.setText(fakultas);
+        valJurusan.setText(jurusan);
+        valAngkatan.setText(angkatan);
+        valEmail.setText(email);
+        valNohp.setText(nohp);
     }
 
-    private void showEditDialog() {
-        JTextField tfNama = new JTextField(namaUser);
-        JTextField tfNim = new JTextField(nimUser);
+    public void promptEditDialog(String currNama, String currNim, String currFakultas, String currJurusan,
+                                 String currAngkatan, String currEmail, String currNohp, Consumer<String[]> onSave) {
+        JTextField tfNama = new JTextField(currNama);
+        JTextField tfNim = new JTextField(currNim);
         JComboBox<String> cbFak = new JComboBox<>(new String[]{
             "Fakultas Teknik",
             "Fakultas Ilmu Komputer",
@@ -265,12 +239,12 @@ public class ProfilFrame extends JFrame {
             "Fakultas Matematika dan Ilmu Pengetahuan Alam",
             "Fakultas Keguruan dan Ilmu Pendidikan"
         });
-        cbFak.setSelectedItem(fakultasUser);
-        JTextField tfJur = new JTextField(jurusanUser);
+        cbFak.setSelectedItem(currFakultas);
+        JTextField tfJur = new JTextField(currJurusan);
         JComboBox<String> cbAng = new JComboBox<>(new String[]{"2022", "2023", "2024", "2025", "2026"});
-        cbAng.setSelectedItem(angkatanUser);
-        JTextField tfEm = new JTextField(emailUser);
-        JTextField tfHp = new JTextField(nohpUser);
+        cbAng.setSelectedItem(currAngkatan);
+        JTextField tfEm = new JTextField(currEmail);
+        JTextField tfHp = new JTextField(currNohp);
 
         Object[] message = {
             "Nama Lengkap:", tfNama,
@@ -287,45 +261,30 @@ public class ProfilFrame extends JFrame {
         );
 
         if (opt == JOptionPane.OK_OPTION) {
-            if (!tfNama.getText().trim().isEmpty() && !tfNim.getText().trim().isEmpty()) {
-                namaUser = tfNama.getText().trim();
-                nimUser = tfNim.getText().trim();
-                fakultasUser = (String) cbFak.getSelectedItem();
-                jurusanUser = tfJur.getText().trim().isEmpty() ? "-" : tfJur.getText().trim();
-                angkatanUser = (String) cbAng.getSelectedItem();
-                emailUser = tfEm.getText().trim().isEmpty() ? "-" : tfEm.getText().trim();
-                nohpUser = tfHp.getText().trim().isEmpty() ? "-" : tfHp.getText().trim();
-
-                refreshDataDisplay();
-                JOptionPane.showMessageDialog(this, "Data profil berhasil diperbarui!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Nama Lengkap dan NIM tidak boleh kosong!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-            }
+            onSave.accept(new String[]{
+                tfNama.getText().trim(),
+                tfNim.getText().trim(),
+                (String) cbFak.getSelectedItem(),
+                tfJur.getText().trim(),
+                (String) cbAng.getSelectedItem(),
+                tfEm.getText().trim(),
+                tfHp.getText().trim()
+            });
         }
     }
 
-    private void refreshDataDisplay() {
-        String init = getInitial(namaUser);
-        lblTopInitial.setText(init);
-        lblTopName.setText(namaUser);
-        lblPhoto.setText(init);
-        lblNamaProfil.setText(namaUser);
-        lblNimProfil.setText(nimUser);
+    private JPanel createInfoItem(String labelText, JLabel valueLabel) {
+        JPanel item = new JPanel();
+        item.setBackground(new Color(247, 249, 252));
+        item.setBorder(new EmptyBorder(16, 18, 16, 18));
+        item.setLayout(new BoxLayout(item, BoxLayout.Y_AXIS));
 
-        valNama.setText(namaUser);
-        valNim.setText(nimUser);
-        valFakultas.setText(fakultasUser);
-        valJurusan.setText(jurusanUser);
-        valAngkatan.setText(angkatanUser);
-        valEmail.setText(emailUser);
-        valNohp.setText(nohpUser);
-    }
+        JLabel lbl = UiKit.label(labelText, 13, false, new Color(127, 140, 141));
+        item.add(lbl);
+        item.add(Box.createVerticalStrut(7));
+        item.add(valueLabel);
 
-    private String getInitial(String name) {
-        if (name != null && !name.trim().isEmpty()) {
-            return name.trim().substring(0, 1).toUpperCase();
-        }
-        return (email != null && !email.isEmpty()) ? email.substring(0, 1).toUpperCase() : "U";
+        return item;
     }
 
     private JPanel menu(String text, String icon, boolean active, Runnable action) {
@@ -348,6 +307,21 @@ public class ProfilFrame extends JFrame {
         });
 
         return p;
+    }
+
+    private void triggerMenu(String menuName) {
+        Runnable r = menuActions.get(menuName);
+        if (r != null) {
+            r.run();
+        }
+    }
+
+    public void setMenuAction(String menuName, Runnable action) {
+        menuActions.put(menuName, action);
+    }
+
+    public void addEditProfileListener(ActionListener l) {
+        btnEdit.addActionListener(l);
     }
 
     private void spaceButton(JButton button, int width, int height) {

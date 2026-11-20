@@ -1,63 +1,44 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.data.ReportRepository;
+import com.foundit.apk.controller.CariBarangController;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Halaman Cari Barang dengan fitur pencarian langsung, filter status/kategori, dan kartu barang.
+ * Halaman Cari Barang dengan fitur pencarian langsung, filter status/kategori, dan kartu barang (View murni).
  */
 public class CariBarangFrame extends JFrame {
 
     private final String email, role;
-    private final ReportRepository repo = ReportRepository.getInstance();
-
     private JTextField tfSearch;
     private JButton btnClearSearch;
     private JComboBox<String> cbStatus, cbKategori;
+    private JButton btnReset;
     private JLabel lblResultCount;
     private JPanel gridWrapper;
-
-    // Struktur data barang: {Nama, Status (hilang/ditemukan), Kategori, Deskripsi/Lokasi}
-    private final List<String[]> semuaBarang = new ArrayList<>();
+    private final Map<String, Runnable> menuActions = new HashMap<>();
 
     public CariBarangFrame(String email, String role) {
+        this(email, role, true);
+    }
+
+    public CariBarangFrame(String email, String role, boolean bindDefaultController) {
         this.email = email;
         this.role = role;
-
-        muatDataBarang();
 
         UiKit.frame(this, "FoundIt | Cari Barang", 1200, 760);
         setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
-    }
 
-    private void muatDataBarang() {
-        semuaBarang.clear();
-        semuaBarang.add(new String[]{
-            "Flashdisk SanDisk 64GB", "hilang", "Elektronik", "Hilang di sekitar Fakultas Teknik."
-        });
-        semuaBarang.add(new String[]{
-            "Kunci Motor Yamaha", "ditemukan", "Aksesoris", "Ditemukan di area parkir kampus."
-        });
-        semuaBarang.add(new String[]{
-            "Handphone", "hilang", "Elektronik", "Hilang di area kantin kampus."
-        });
-        semuaBarang.add(new String[]{
-            "Dompet Kulit", "ditemukan", "Aksesoris", "Ditemukan di sekitar perpustakaan."
-        });
-
-        for (ReportRepository.Report r : repo.findAll()) {
-            String st = "HILANG".equalsIgnoreCase(r.getType()) ? "hilang" : "ditemukan";
-            String kat = (r.getCategory() != null && !r.getCategory().isEmpty()) ? r.getCategory() : "Lainnya";
-            semuaBarang.add(new String[]{
-                r.getName(), st, kat, r.getLocation() + " - " + r.getDescription()
-            });
+        if (bindDefaultController) {
+            new CariBarangController(this, email, role).bind();
         }
     }
 
@@ -65,7 +46,7 @@ public class CariBarangFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP 7 MENU
+        // SIDEBAR LENGKAP 8 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -79,44 +60,18 @@ public class CariBarangFrame extends JFrame {
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
 
         side.add(logo);
-        side.add(menu("Dashboard", "home", false, () -> {
-            new UserDashboardFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Dashboard", "home", false, () -> triggerMenu("Dashboard")));
         side.add(menu("Cari Barang", "search", true, () -> {}));
-        side.add(menu("Lapor Barang Hilang", "lost", false, () -> {
-            new LaporHilangFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> {
-            new LaporDitemukanFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Klaim Barang", "claim", false, () -> {
-            new KlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Status Klaim", "status", false, () -> {
-            new StatusKlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Riwayat Laporan", "history", false, () -> {
-            new RiwayatLaporanFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        
-        side.add(menu("Profil", "profile", false, () -> {
-            new ProfilFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Lapor Barang Hilang", "lost", false, () -> triggerMenu("Lapor Barang Hilang")));
+        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> triggerMenu("Lapor Barang Ditemukan")));
+        side.add(menu("Klaim Barang", "claim", false, () -> triggerMenu("Klaim Barang")));
+        side.add(menu("Status Klaim", "status", false, () -> triggerMenu("Status Klaim")));
+        side.add(menu("Riwayat Laporan", "history", false, () -> triggerMenu("Riwayat Laporan")));
+        side.add(menu("Profil", "profile", false, () -> triggerMenu("Profil")));
 
         side.add(Box.createVerticalGlue());
 
-        side.add(menu("Keluar", "return", false, () -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        }));
-
+        side.add(menu("Keluar", "return", false, () -> triggerMenu("Keluar")));
         side.add(Box.createVerticalStrut(25));
 
         root.add(side, BorderLayout.WEST);
@@ -161,7 +116,7 @@ public class CariBarangFrame extends JFrame {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(22, 0, 10, 8));
 
-        // 1. KOTAK PENCARIAN & FILTER (.search-box)
+        // 1. KOTAK PENCARIAN & FILTER
         JPanel searchBox = UiKit.card();
         searchBox.setBackground(Color.WHITE);
         searchBox.setBorder(BorderFactory.createCompoundBorder(
@@ -226,7 +181,7 @@ public class CariBarangFrame extends JFrame {
         cbKategori.setBackground(Color.WHITE);
         cbKategori.setPreferredSize(new Dimension(165, 44));
 
-        JButton btnReset = UiKit.button("Reset Filter", new Color(248, 250, 252), new Color(71, 85, 105));
+        btnReset = UiKit.button("Reset Filter", new Color(248, 250, 252), new Color(71, 85, 105));
         btnReset.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(203, 213, 225)),
             new EmptyBorder(8, 16, 8, 16)
@@ -243,7 +198,7 @@ public class CariBarangFrame extends JFrame {
         body.add(searchBox);
         body.add(Box.createVerticalStrut(24));
 
-        // 2. HEADER HASIL PENCARIAN (.result-header)
+        // 2. HEADER HASIL PENCARIAN
         JPanel resultHeader = new JPanel(new BorderLayout());
         resultHeader.setOpaque(false);
         resultHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 55));
@@ -260,34 +215,10 @@ public class CariBarangFrame extends JFrame {
         body.add(resultHeader);
         body.add(Box.createVerticalStrut(14));
 
-        // 3. GRID KARTU BARANG (#barangGrid)
+        // 3. GRID KARTU BARANG
         gridWrapper = new JPanel(new BorderLayout());
         gridWrapper.setOpaque(false);
         body.add(gridWrapper);
-
-        tfSearch.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { updateSearch(); }
-            public void removeUpdate(DocumentEvent e) { updateSearch(); }
-            public void changedUpdate(DocumentEvent e) { updateSearch(); }
-        });
-
-        btnClearSearch.addActionListener(e -> {
-            tfSearch.setText("");
-            tfSearch.requestFocus();
-        });
-
-        cbStatus.addActionListener(e -> filterBarang());
-        cbKategori.addActionListener(e -> filterBarang());
-
-        btnReset.addActionListener(e -> {
-            tfSearch.setText("");
-            cbStatus.setSelectedIndex(0);
-            cbKategori.setSelectedIndex(0);
-            filterBarang();
-            tfSearch.requestFocus();
-        });
-
-        filterBarang();
 
         JScrollPane sc = new JScrollPane(body);
         sc.setBorder(null);
@@ -301,33 +232,8 @@ public class CariBarangFrame extends JFrame {
         return root;
     }
 
-    private void updateSearch() {
-        btnClearSearch.setVisible(!tfSearch.getText().isEmpty());
-        filterBarang();
-    }
-
-    private void filterBarang() {
+    public void renderGrid(List<String[]> hasil, Consumer<String[]> onDetail, Consumer<String[]> onClaim) {
         gridWrapper.removeAll();
-
-        String keyword = tfSearch.getText().trim().toLowerCase();
-        String statusFilter = ((String) cbStatus.getSelectedItem()).toLowerCase();
-        String categoryFilter = ((String) cbKategori.getSelectedItem()).toLowerCase();
-
-        List<String[]> hasil = new ArrayList<>();
-
-        for (String[] item : semuaBarang) {
-            String nama = item[0].toLowerCase();
-            String status = item[1].toLowerCase();
-            String kategori = item[2].toLowerCase();
-
-            boolean cocokNama = nama.contains(keyword);
-            boolean cocokStatus = statusFilter.contains("semua") || status.equals(statusFilter);
-            boolean cocokKategori = categoryFilter.contains("semua") || kategori.equals(categoryFilter);
-
-            if (cocokNama && cocokStatus && cocokKategori) {
-                hasil.add(item);
-            }
-        }
 
         if (hasil.isEmpty()) {
             lblResultCount.setText("Tidak ada barang yang sesuai");
@@ -362,7 +268,7 @@ public class CariBarangFrame extends JFrame {
             grid.setOpaque(false);
 
             for (String[] item : hasil) {
-                grid.add(createBarangCard(item));
+                grid.add(createBarangCard(item, onDetail, onClaim));
             }
 
             if (hasil.size() % cols != 0) {
@@ -378,7 +284,7 @@ public class CariBarangFrame extends JFrame {
         gridWrapper.repaint();
     }
 
-    private JPanel createBarangCard(String[] item) {
+    private JPanel createBarangCard(String[] item, Consumer<String[]> onDetail, Consumer<String[]> onClaim) {
         String nama = item[0];
         String status = item[1];
         String kategori = item[2];
@@ -452,26 +358,13 @@ public class CariBarangFrame extends JFrame {
 
         JButton btnDetail = UiKit.button("Lihat Detail", UiKit.BLUE, Color.WHITE);
         btnDetail.setPreferredSize(new Dimension(0, 38));
-        btnDetail.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                this,
-                "Nama Barang: " + nama
-                    + "\nStatus: " + (isHilang ? "Hilang" : "Ditemukan")
-                    + "\nKategori: " + kategori
-                    + "\nKeterangan: " + deskripsi,
-                "Detail Barang",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-        });
+        btnDetail.addActionListener(e -> onDetail.accept(item));
         actions.add(btnDetail);
 
         if (!isHilang) {
             JButton btnKlaim = UiKit.button("Klaim", new Color(39, 174, 96), Color.WHITE);
             btnKlaim.setPreferredSize(new Dimension(0, 38));
-            btnKlaim.addActionListener(e -> {
-                new KlaimFrame(email, role, nama, kategori, deskripsi).setVisible(true);
-                dispose();
-            });
+            btnKlaim.addActionListener(e -> onClaim.accept(item));
             actions.add(btnKlaim);
         }
 
@@ -502,4 +395,33 @@ public class CariBarangFrame extends JFrame {
 
         return p;
     }
+
+    private void triggerMenu(String menuName) {
+        Runnable r = menuActions.get(menuName);
+        if (r != null) {
+            r.run();
+        }
+    }
+
+    public void setMenuAction(String menuName, Runnable action) {
+        menuActions.put(menuName, action);
+    }
+
+    public String getSearchKeyword() { return tfSearch.getText().trim(); }
+    public void setSearchKeyword(String text) { tfSearch.setText(text); }
+    public void focusSearch() { tfSearch.requestFocus(); }
+
+    public String getSelectedStatus() { return (String) cbStatus.getSelectedItem(); }
+    public void setSelectedStatusIndex(int index) { cbStatus.setSelectedIndex(index); }
+
+    public String getSelectedKategori() { return (String) cbKategori.getSelectedItem(); }
+    public void setSelectedKategoriIndex(int index) { cbKategori.setSelectedIndex(index); }
+
+    public void setClearButtonVisible(boolean visible) { btnClearSearch.setVisible(visible); }
+
+    public void addSearchDocumentListener(DocumentListener l) { tfSearch.getDocument().addDocumentListener(l); }
+    public void addClearSearchListener(ActionListener l) { btnClearSearch.addActionListener(l); }
+    public void addStatusFilterListener(ActionListener l) { cbStatus.addActionListener(l); }
+    public void addCategoryFilterListener(ActionListener l) { cbKategori.addActionListener(l); }
+    public void addResetFilterListener(ActionListener l) { btnReset.addActionListener(l); }
 }

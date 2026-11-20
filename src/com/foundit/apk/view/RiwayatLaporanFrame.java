@@ -1,36 +1,48 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.data.ReportRepository;
+import com.foundit.apk.controller.RiwayatLaporanController;
+import com.foundit.apk.model.ReportRepository;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Halaman untuk melihat riwayat laporan barang yang pernah dibuat pengguna.
+ * Halaman untuk melihat riwayat laporan barang yang pernah dibuat pengguna (View murni).
  */
 public class RiwayatLaporanFrame extends JFrame {
 
     private final String email, role;
-    private final ReportRepository repo = ReportRepository.getInstance();
-
     private JPanel riwayatListPanel;
     private JLabel jumlahLaporanLabel;
+    private JButton btnBuat;
+    private final Map<String, Runnable> menuActions = new HashMap<>();
 
     public RiwayatLaporanFrame(String email, String role) {
+        this(email, role, true);
+    }
+
+    public RiwayatLaporanFrame(String email, String role, boolean bindDefaultController) {
         this.email = email;
         this.role = role;
 
         UiKit.frame(this, "FoundIt | Riwayat Laporan", 1200, 760);
         setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
+
+        if (bindDefaultController) {
+            new RiwayatLaporanController(this, email, role).bind();
+        }
     }
 
     private JPanel build() {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP 7 MENU SESUAI URUTAN
+        // SIDEBAR LENGKAP 8 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -44,23 +56,17 @@ public class RiwayatLaporanFrame extends JFrame {
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
 
         side.add(logo);
-        side.add(menu("Dashboard", "home", false, () -> openDashboard()));
-        side.add(menu("Cari Barang", "search", false, () -> openCariBarang()));
-        side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
-        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
-        side.add(menu("Klaim Barang", "claim", false, () -> openKlaim()));
-        side.add(menu("Status Klaim", "status", false, () -> openStatusKlaim()));
+        side.add(menu("Dashboard", "home", false, () -> triggerMenu("Dashboard")));
+        side.add(menu("Cari Barang", "search", false, () -> triggerMenu("Cari Barang")));
+        side.add(menu("Lapor Barang Hilang", "lost", false, () -> triggerMenu("Lapor Barang Hilang")));
+        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> triggerMenu("Lapor Barang Ditemukan")));
+        side.add(menu("Klaim Barang", "claim", false, () -> triggerMenu("Klaim Barang")));
+        side.add(menu("Status Klaim", "status", false, () -> triggerMenu("Status Klaim")));
         side.add(menu("Riwayat Laporan", "history", true, () -> {}));
-        side.add(menu("Profil", "profile", false, () -> {
-            new ProfilFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Profil", "profile", false, () -> triggerMenu("Profil")));
         side.add(Box.createVerticalGlue());
 
-        side.add(menu("Keluar", "return", false, () -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Keluar", "return", false, () -> triggerMenu("Keluar")));
         side.add(Box.createVerticalStrut(25));
 
         root.add(side, BorderLayout.WEST);
@@ -132,9 +138,8 @@ public class RiwayatLaporanFrame extends JFrame {
 
         JPanel headerRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         headerRight.setOpaque(false);
-        JButton btnBuat = UiKit.button("+ Buat Laporan", UiKit.BLUE, Color.WHITE);
+        btnBuat = UiKit.button("+ Buat Laporan", UiKit.BLUE, Color.WHITE);
         spaceButton(btnBuat, 155, 42);
-        btnBuat.addActionListener(e -> openLost());
         headerRight.add(btnBuat);
 
         historyHeader.add(headerRight, BorderLayout.EAST);
@@ -143,8 +148,6 @@ public class RiwayatLaporanFrame extends JFrame {
         riwayatListPanel = new JPanel();
         riwayatListPanel.setOpaque(false);
         riwayatListPanel.setLayout(new BoxLayout(riwayatListPanel, BoxLayout.Y_AXIS));
-
-        refreshRiwayatList();
 
         container.add(riwayatListPanel, BorderLayout.CENTER);
         body.add(container);
@@ -161,11 +164,12 @@ public class RiwayatLaporanFrame extends JFrame {
         return root;
     }
 
-    private void refreshRiwayatList() {
-        riwayatListPanel.removeAll();
-        List<ReportRepository.Report> daftarLaporan = repo.findAll();
+    public void setJumlahLaporanText(String text) {
+        jumlahLaporanLabel.setText(text);
+    }
 
-        jumlahLaporanLabel.setText(daftarLaporan.size() + " laporan ditemukan");
+    public void renderRiwayatList(List<ReportRepository.Report> daftarLaporan, Runnable onBuatLaporan) {
+        riwayatListPanel.removeAll();
 
         if (daftarLaporan.isEmpty()) {
             JPanel emptyPanel = new JPanel();
@@ -182,7 +186,7 @@ public class RiwayatLaporanFrame extends JFrame {
             JButton btnEmpty = UiKit.button("Buat Laporan", UiKit.BLUE, Color.WHITE);
             spaceButton(btnEmpty, 145, 40);
             btnEmpty.setAlignmentX(Component.CENTER_ALIGNMENT);
-            btnEmpty.addActionListener(e -> openLost());
+            btnEmpty.addActionListener(e -> onBuatLaporan.run());
 
             emptyPanel.add(emptyTitle);
             emptyPanel.add(Box.createVerticalStrut(8));
@@ -307,6 +311,21 @@ public class RiwayatLaporanFrame extends JFrame {
         return p;
     }
 
+    private void triggerMenu(String menuName) {
+        Runnable r = menuActions.get(menuName);
+        if (r != null) {
+            r.run();
+        }
+    }
+
+    public void setMenuAction(String menuName, Runnable action) {
+        menuActions.put(menuName, action);
+    }
+
+    public void addBuatLaporanListener(ActionListener l) {
+        btnBuat.addActionListener(l);
+    }
+
     private void spaceButton(JButton button, int width, int height) {
         button.setMargin(new Insets(8, 24, 8, 24));
         button.setBorder(new EmptyBorder(8, 24, 8, 24));
@@ -315,35 +334,5 @@ public class RiwayatLaporanFrame extends JFrame {
         button.setPreferredSize(new Dimension(width, height));
         button.setMinimumSize(new Dimension(width, height));
         button.setMaximumSize(new Dimension(width, height));
-    }
-
-    private void openDashboard() {
-        new UserDashboardFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openCariBarang() {
-        new CariBarangFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openLost() {
-        new LaporHilangFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openFound() {
-        new LaporDitemukanFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openKlaim() {
-        new KlaimFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openStatusKlaim() {
-        new StatusKlaimFrame(email, role).setVisible(true);
-        dispose();
     }
 }

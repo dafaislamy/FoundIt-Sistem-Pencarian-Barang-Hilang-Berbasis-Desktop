@@ -1,11 +1,14 @@
 package com.foundit.apk.view;
 
+import com.foundit.apk.controller.LoginController;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 /**
- * Login dengan pemilihan peran berbentuk segmented cards.
+ * View Login dengan pemilihan peran berbentuk segmented cards (View murni).
  */
 public class LoginFrame extends JFrame {
 
@@ -14,10 +17,19 @@ public class LoginFrame extends JFrame {
     private JLabel length, upper, symbol;
     private String role = "user";
     private JButton userChoice, adminChoice;
+    private JButton submit;
+    private JButton back;
 
     public LoginFrame() {
+        this(true);
+    }
+
+    public LoginFrame(boolean bindDefaultController) {
         UiKit.frame(this, "FoundIt | Login", 1160, 740);
         setContentPane(build());
+        if (bindDefaultController) {
+            new LoginController(this).bind();
+        }
     }
 
     private JPanel build() {
@@ -45,7 +57,7 @@ public class LoginFrame extends JFrame {
         ));
         welcome.add(Box.createVerticalStrut(30));
 
-        JButton back = UiKit.button(
+        back = UiKit.button(
             "Kembali ke Beranda",
             new Color(255, 255, 255, 35),
             Color.WHITE
@@ -61,11 +73,6 @@ public class LoginFrame extends JFrame {
         back.setPreferredSize(new Dimension(190, 42));
         back.setMinimumSize(new Dimension(190, 42));
         back.setMaximumSize(new Dimension(190, 42));
-
-        back.addActionListener(e -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        });
 
         welcome.add(back);
         left.add(welcome);
@@ -103,9 +110,6 @@ public class LoginFrame extends JFrame {
         userChoice = roleButton("User", true);
         adminChoice = roleButton("Admin", false);
 
-        userChoice.addActionListener(e -> selectRole("user"));
-        adminChoice.addActionListener(e -> selectRole("admin"));
-
         roles.add(userChoice);
         roles.add(adminChoice);
         form.add(roles);
@@ -133,23 +137,6 @@ public class LoginFrame extends JFrame {
         form.add(upper);
         form.add(symbol);
 
-        password.getDocument().addDocumentListener(
-            new javax.swing.event.DocumentListener() {
-
-                public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                    updateRules();
-                }
-
-                public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                    updateRules();
-                }
-
-                public void changedUpdate(javax.swing.event.DocumentEvent e) {
-                    updateRules();
-                }
-            }
-        );
-
         form.add(Box.createVerticalStrut(20));
 
         JPanel submitWrap = new JPanel(
@@ -159,7 +146,7 @@ public class LoginFrame extends JFrame {
         submitWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
         submitWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
 
-        JButton submit = UiKit.button(
+        submit = UiKit.button(
             "Masuk ke FoundIt",
             UiKit.BLUE,
             Color.WHITE
@@ -168,8 +155,6 @@ public class LoginFrame extends JFrame {
         submit.setPreferredSize(new Dimension(300, 52));
         submit.setMinimumSize(new Dimension(300, 52));
         submit.setMaximumSize(new Dimension(300, 52));
-
-        submit.addActionListener(e -> login());
 
         submitWrap.add(submit);
         form.add(submitWrap);
@@ -182,25 +167,17 @@ public class LoginFrame extends JFrame {
 
     private JButton roleButton(String text, boolean selected) {
         JButton b = new JButton(text) {
-
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-
                 g2.setRenderingHint(
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON
                 );
-
-                boolean on = Boolean.TRUE.equals(
-                    getClientProperty("selected")
-                );
-
+                boolean on = Boolean.TRUE.equals(getClientProperty("selected"));
                 Color bg = on ? UiKit.BLUE_DARK : UiKit.PALE;
-
                 g2.setColor(getModel().isPressed() ? bg.darker() : bg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 24, 24);
                 g2.dispose();
-
                 super.paintComponent(g);
             }
         };
@@ -221,9 +198,8 @@ public class LoginFrame extends JFrame {
         return b;
     }
 
-    private void selectRole(String r) {
-        role = r;
-
+    public void selectRole(String r) {
+        this.role = r;
         styleChoice(userChoice, r.equals("user"));
         styleChoice(adminChoice, r.equals("admin"));
     }
@@ -237,10 +213,8 @@ public class LoginFrame extends JFrame {
     private JPanel brand() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         p.setOpaque(false);
-
         p.add(UiKit.label("Found", 29, true, Color.WHITE));
         p.add(UiKit.label("It", 29, true, UiKit.SKY));
-
         return p;
     }
 
@@ -251,67 +225,71 @@ public class LoginFrame extends JFrame {
             false,
             new Color(160, 80, 80)
         );
-
         l.setBorder(new EmptyBorder(2, 0, 2, 0));
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         return l;
     }
 
-    private void updateRules() {
-        String p = new String(password.getPassword());
-
-        setRule(length, p.length() >= 8, "Minimal 8 karakter");
-        setRule(upper, p.matches(".*[A-Z].*"),
-            "Mengandung huruf kapital (A-Z)");
-        setRule(symbol, p.matches(".*[!@#$%^&*].*"),
-            "Mengandung simbol (!@#$%^&*)");
+    public void setRuleStatus(String ruleName, boolean ok) {
+        JLabel targetLabel = null;
+        String desc = "";
+        if ("length".equals(ruleName)) {
+            targetLabel = length;
+            desc = "Minimal 8 karakter";
+        } else if ("upper".equals(ruleName)) {
+            targetLabel = upper;
+            desc = "Mengandung huruf kapital (A-Z)";
+        } else if ("symbol".equals(ruleName)) {
+            targetLabel = symbol;
+            desc = "Mengandung simbol (!@#$%^&*)";
+        }
+        if (targetLabel != null) {
+            targetLabel.setText((ok ? "✓  " : "✕  ") + desc);
+            targetLabel.setForeground(ok ? new Color(39, 174, 96) : new Color(190, 90, 90));
+        }
     }
 
-    private void setRule(JLabel l, boolean ok, String s) {
-        l.setText((ok ? "✓  " : "✕  ") + s);
-        l.setForeground(
-            ok ? new Color(39, 174, 96) : new Color(190, 90, 90)
-        );
+    public String getEmail() {
+        return email.getText().trim();
     }
 
-    private void login() {
-        String em = email.getText().trim();
-        String pw = new String(password.getPassword());
+    public void setEmail(String text) {
+        email.setText(text);
+    }
 
-        if (em.isEmpty() || !em.contains("@")) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Email wajib diisi dan harus mengandung tanda @.",
-                "Email belum valid",
-                JOptionPane.WARNING_MESSAGE
-            );
+    public String getPassword() {
+        return new String(password.getPassword());
+    }
 
-            email.requestFocus();
-            return;
-        }
+    public String getSelectedRole() {
+        return role;
+    }
 
-        if (pw.length() < 8
-                || !pw.matches(".*[A-Z].*")
-                || !pw.matches(".*[!@#$%^&*].*")) {
+    public void focusEmail() {
+        email.requestFocus();
+    }
 
-            JOptionPane.showMessageDialog(
-                this,
-                "Password belum memenuhi semua persyaratan.",
-                "Password belum valid",
-                JOptionPane.WARNING_MESSAGE
-            );
+    public void focusPassword() {
+        password.requestFocus();
+    }
 
-            password.requestFocus();
-            return;
-        }
+    public void addPasswordDocumentListener(DocumentListener l) {
+        password.getDocument().addDocumentListener(l);
+    }
 
-        if (role.equals("admin")) {
-            new AdminDashboardFrame().setVisible(true);
-        } else {
-            new UserDashboardFrame(em, role).setVisible(true);
-        }
+    public void addUserChoiceListener(ActionListener l) {
+        userChoice.addActionListener(l);
+    }
 
-        dispose();
+    public void addAdminChoiceListener(ActionListener l) {
+        adminChoice.addActionListener(l);
+    }
+
+    public void addBackListener(ActionListener l) {
+        back.addActionListener(l);
+    }
+
+    public void addSubmitListener(ActionListener l) {
+        submit.addActionListener(l);
     }
 }

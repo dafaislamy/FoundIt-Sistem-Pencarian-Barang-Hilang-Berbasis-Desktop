@@ -1,15 +1,27 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.*;
-
+import com.foundit.apk.controller.AdminDashboardController;
+import com.foundit.apk.model.*;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.time.LocalDate;
 
+/**
+ * Dashboard Admin - FoundIt (View murni).
+ */
 public class AdminDashboardFrame extends JFrame {
+
+    private Consumer<Integer> menuNavigationHandler;
+
     public AdminDashboardFrame() {
+        this(true);
+    }
+
+    public AdminDashboardFrame(boolean bindDefaultController) {
         setTitle("Dashboard Admin - FoundIt");
         setSize(1150, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -19,6 +31,7 @@ public class AdminDashboardFrame extends JFrame {
         User activeAdmin = new User("A1", "Administrator", "ADM001", "admin@campus.ac.id", "secret", "081111111111", Role.ADMIN);
         Item item1 = new Item("I1", "Kunci Motor Honda Vario", "Gantungan hitam bordir", ItemType.FIND, "Gedung C", LocalDate.now(), null, null);
 
+        // Sidebar Navigasi
         JPanel sidebar = new JPanel();
         sidebar.setBackground(Color.WHITE);
         sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(229, 231, 235)));
@@ -60,23 +73,9 @@ public class AdminDashboardFrame extends JFrame {
             }
             
             final int index = i;
-btnMenu.addActionListener(e -> {
-                dispose(); // Menutup frame yang sedang aktif
-                
-                if (index == 0) {
-                    new AdminDashboardFrame().setVisible(true);
-                } else if (index == 1) {
-                    new AdminKelolaKategoriFrame().setVisible(true);
-                } else if (index == 2) {
-                    new AdminKelolaLaporanFrame().setVisible(true);
-                } else if (index == 3) {
-                    new AdminKelolaUserFrame().setVisible(true);
-                } else if (index == 4) {
-                    new AdminUbahStatusFrame().setVisible(true);
-                } else if (index == 5) {
-                    new AdminVerifikasiKlaimFrame().setVisible(true);
-                } else if (index == 6) {
-                    new AdminVerifikasiLaporanFrame().setVisible(true);
+            btnMenu.addActionListener(e -> {
+                if (menuNavigationHandler != null) {
+                    menuNavigationHandler.accept(index);
                 }
             });
 
@@ -201,6 +200,10 @@ btnMenu.addActionListener(e -> {
         mainContent.add(scrollPane);
 
         add(new JScrollPane(mainContent), BorderLayout.CENTER);
+
+        if (bindDefaultController) {
+            new AdminDashboardController(this).bind();
+        }
     }
 
     private JPanel createStatCard(String title, String value, String icon) {
@@ -234,7 +237,7 @@ btnMenu.addActionListener(e -> {
         return card;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminDashboardFrame().setVisible(true));
+    public void setMenuNavigationHandler(Consumer<Integer> handler) {
+        this.menuNavigationHandler = handler;
     }
 }

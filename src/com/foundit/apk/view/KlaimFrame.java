@@ -1,11 +1,15 @@
 package com.foundit.apk.view;
 
+import com.foundit.apk.controller.KlaimController;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Halaman Form Pengajuan Klaim Barang (Konversi dari klaim.html dan klaim.js).
+ * Halaman Form Pengajuan Klaim Barang (View murni).
  */
 public class KlaimFrame extends JFrame {
 
@@ -13,15 +17,19 @@ public class KlaimFrame extends JFrame {
     private JTextField tfNamaBarang, tfLokasiHilang;
     private JComboBox<String> cbKategori;
     private JTextArea taCiriBarang, taKeterangan;
-
+    private JButton btnCancel, btnSubmit;
     private final String prefillNama, prefillKategori, prefillLokasi;
+    private final Map<String, Runnable> menuActions = new HashMap<>();
 
     public KlaimFrame(String email, String role) {
         this(email, role, "", "", "");
     }
 
-    // Konstruktor dengan prefill otomatis saat tombol "Klaim" diklik dari halaman Cari Barang / Dashboard
     public KlaimFrame(String email, String role, String prefillNama, String prefillKategori, String prefillLokasi) {
+        this(email, role, prefillNama, prefillKategori, prefillLokasi, true);
+    }
+
+    public KlaimFrame(String email, String role, String prefillNama, String prefillKategori, String prefillLokasi, boolean bindDefaultController) {
         this.email = email;
         this.role = role;
         this.prefillNama = prefillNama;
@@ -31,13 +39,17 @@ public class KlaimFrame extends JFrame {
         UiKit.frame(this, "FoundIt | Klaim Barang", 1200, 760);
         setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
+
+        if (bindDefaultController) {
+            new KlaimController(this, email, role).bind();
+        }
     }
 
     private JPanel build() {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP
+        // SIDEBAR LENGKAP 8 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -51,43 +63,18 @@ public class KlaimFrame extends JFrame {
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
 
         side.add(logo);
-        side.add(menu("Dashboard", "home", false, () -> {
-            new UserDashboardFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Cari Barang", "search", false, () -> {
-            new CariBarangFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Lapor Barang Hilang", "lost", false, () -> {
-            new LaporHilangFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> {
-            new LaporDitemukanFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Dashboard", "home", false, () -> triggerMenu("Dashboard")));
+        side.add(menu("Cari Barang", "search", false, () -> triggerMenu("Cari Barang")));
+        side.add(menu("Lapor Barang Hilang", "lost", false, () -> triggerMenu("Lapor Barang Hilang")));
+        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> triggerMenu("Lapor Barang Ditemukan")));
         side.add(menu("Klaim Barang", "claim", true, () -> {}));
-        side.add(menu("Status Klaim", "status", false, () -> {
-            new StatusKlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Riwayat Laporan", "history", false, () -> {
-            new RiwayatLaporanFrame(email, role).setVisible(true);
-            dispose();
-        }));
-
-        side.add(menu("Profil", "profile", false, () -> {
-            new ProfilFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Status Klaim", "status", false, () -> triggerMenu("Status Klaim")));
+        side.add(menu("Riwayat Laporan", "history", false, () -> triggerMenu("Riwayat Laporan")));
+        side.add(menu("Profil", "profile", false, () -> triggerMenu("Profil")));
 
         side.add(Box.createVerticalGlue());
 
-        side.add(menu("Keluar", "return", false, () -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Keluar", "return", false, () -> triggerMenu("Keluar")));
         side.add(Box.createVerticalStrut(25));
 
         root.add(side, BorderLayout.WEST);
@@ -132,7 +119,7 @@ public class KlaimFrame extends JFrame {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(22, 0, 10, 8));
 
-        // CONTAINER FORM KLAIM (.claim-container)
+        // CONTAINER FORM KLAIM
         JPanel container = UiKit.card();
         container.setBackground(Color.WHITE);
         container.setBorder(BorderFactory.createCompoundBorder(
@@ -141,7 +128,7 @@ public class KlaimFrame extends JFrame {
         ));
         container.setLayout(new BorderLayout(0, 22));
 
-        // Header Form (.claim-header)
+        // Header Form
         JPanel claimHeader = new JPanel();
         claimHeader.setOpaque(false);
         claimHeader.setLayout(new BoxLayout(claimHeader, BoxLayout.Y_AXIS));
@@ -155,7 +142,7 @@ public class KlaimFrame extends JFrame {
 
         container.add(claimHeader, BorderLayout.NORTH);
 
-        // Form Fields (#klaimForm)
+        // Form Fields
         JPanel formPanel = new JPanel();
         formPanel.setOpaque(false);
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
@@ -214,7 +201,7 @@ public class KlaimFrame extends JFrame {
 
         container.add(formPanel, BorderLayout.CENTER);
 
-        // Tombol Batal & Ajukan Klaim (.form-actions)
+        // Tombol Batal & Ajukan Klaim
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         actions.setOpaque(false);
         actions.setBorder(BorderFactory.createCompoundBorder(
@@ -222,16 +209,11 @@ public class KlaimFrame extends JFrame {
             new EmptyBorder(20, 0, 0, 0)
         ));
 
-        JButton btnCancel = UiKit.button("Batal", new Color(236, 240, 241), UiKit.TEXT);
+        btnCancel = UiKit.button("Batal", new Color(236, 240, 241), UiKit.TEXT);
         spaceButton(btnCancel, 110, 42);
-        btnCancel.addActionListener(e -> {
-            new CariBarangFrame(email, role).setVisible(true);
-            dispose();
-        });
 
-        JButton btnSubmit = UiKit.button("Ajukan Klaim", UiKit.BLUE, Color.WHITE);
+        btnSubmit = UiKit.button("Ajukan Klaim", UiKit.BLUE, Color.WHITE);
         spaceButton(btnSubmit, 150, 42);
-        btnSubmit.addActionListener(e -> submitKlaim());
 
         actions.add(btnCancel);
         actions.add(btnSubmit);
@@ -249,37 +231,6 @@ public class KlaimFrame extends JFrame {
         root.add(main, BorderLayout.CENTER);
 
         return root;
-    }
-
-    private void submitKlaim() {
-        String nama = tfNamaBarang.getText().trim();
-        String kategori = (String) cbKategori.getSelectedItem();
-        String ciri = taCiriBarang.getText().trim();
-        String lokasi = tfLokasiHilang.getText().trim();
-        String keterangan = taKeterangan.getText().trim();
-
-        if (nama.isEmpty() || cbKategori.getSelectedIndex() == 0 || ciri.isEmpty() || lokasi.isEmpty() || keterangan.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Harap lengkapi semua kolom pada form pengajuan klaim!",
-                "Data Belum Lengkap",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-
-        // Menyimpan ke daftarKlaim dan mengarahkan ke StatusKlaimFrame (sesuai klaim.js)
-        StatusKlaimFrame.tambahKlaim(nama, kategori, lokasi, ciri, keterangan);
-
-        JOptionPane.showMessageDialog(
-            this,
-            "Pengajuan klaim berhasil dikirim!",
-            "Berhasil",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-
-        new StatusKlaimFrame(email, role).setVisible(true);
-        dispose();
     }
 
     private JPanel menu(String text, String icon, boolean active, Runnable action) {
@@ -303,6 +254,27 @@ public class KlaimFrame extends JFrame {
 
         return p;
     }
+
+    private void triggerMenu(String menuName) {
+        Runnable r = menuActions.get(menuName);
+        if (r != null) {
+            r.run();
+        }
+    }
+
+    public void setMenuAction(String menuName, Runnable action) {
+        menuActions.put(menuName, action);
+    }
+
+    public String getNamaBarang() { return tfNamaBarang.getText().trim(); }
+    public String getKategori() { return (String) cbKategori.getSelectedItem(); }
+    public int getKategoriSelectedIndex() { return cbKategori.getSelectedIndex(); }
+    public String getCiriBarang() { return taCiriBarang.getText().trim(); }
+    public String getLokasiHilang() { return tfLokasiHilang.getText().trim(); }
+    public String getKeterangan() { return taKeterangan.getText().trim(); }
+
+    public void addCancelListener(ActionListener l) { btnCancel.addActionListener(l); }
+    public void addSubmitListener(ActionListener l) { btnSubmit.addActionListener(l); }
 
     private void spaceButton(JButton button, int width, int height) {
         button.setMargin(new Insets(8, 20, 8, 20));

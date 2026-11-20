@@ -1,29 +1,39 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.*;
-
+import com.foundit.apk.controller.AdminKelolaKategoriController;
+import com.foundit.apk.model.Category;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Kelola Kategori - FoundIt Admin (View murni).
+ */
 public class AdminKelolaKategoriFrame extends JFrame {
-    private List<Category> kategoriList = new ArrayList<>();
+
+    private JTextField tfNama;
+    private JTextArea taDesc;
+    private JButton btnSimpan;
     private DefaultTableModel tableModel;
+    private JTable table;
+    private Consumer<Integer> menuNavigationHandler;
 
     public AdminKelolaKategoriFrame() {
+        this(true);
+    }
+
+    public AdminKelolaKategoriFrame(boolean bindDefaultController) {
         setTitle("Kelola Kategori - FoundIt Admin");
         setSize(1150, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-
-        kategoriList.add(new Category("Elektronik"));
-        kategoriList.add(new Category("Aksesoris"));
-        kategoriList.add(new Category("Dokumen"));
-        kategoriList.add(new Category("Lainnya"));
 
         JPanel sidebar = new JPanel();
         sidebar.setBackground(Color.WHITE);
@@ -66,23 +76,9 @@ public class AdminKelolaKategoriFrame extends JFrame {
             }
 
             final int index = i;
-btnMenu.addActionListener(e -> {
-                dispose(); // Menutup frame yang sedang aktif
-                
-                if (index == 0) {
-                    new AdminDashboardFrame().setVisible(true);
-                } else if (index == 1) {
-                    new AdminKelolaKategoriFrame().setVisible(true);
-                } else if (index == 2) {
-                    new AdminKelolaLaporanFrame().setVisible(true);
-                } else if (index == 3) {
-                    new AdminKelolaUserFrame().setVisible(true);
-                } else if (index == 4) {
-                    new AdminUbahStatusFrame().setVisible(true);
-                } else if (index == 5) {
-                    new AdminVerifikasiKlaimFrame().setVisible(true);
-                } else if (index == 6) {
-                    new AdminVerifikasiLaporanFrame().setVisible(true);
+            btnMenu.addActionListener(e -> {
+                if (menuNavigationHandler != null) {
+                    menuNavigationHandler.accept(index);
                 }
             });
 
@@ -125,19 +121,19 @@ btnMenu.addActionListener(e -> {
 
         formCard.add(new JLabel("Nama Kategori"));
         formCard.add(Box.createRigidArea(new Dimension(0, 8)));
-        JTextField tfNama = new JTextField();
+        tfNama = new JTextField();
         tfNama.setMaximumSize(new Dimension(2000, 38));
         formCard.add(tfNama);
         formCard.add(Box.createRigidArea(new Dimension(0, 15)));
 
         formCard.add(new JLabel("Keterangan / Deskripsi"));
         formCard.add(Box.createRigidArea(new Dimension(0, 8)));
-        JTextArea taDesc = new JTextArea(4, 20);
+        taDesc = new JTextArea(4, 20);
         taDesc.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         formCard.add(new JScrollPane(taDesc));
         formCard.add(Box.createRigidArea(new Dimension(0, 25)));
 
-        JButton btnSimpan = new JButton("Simpan Kategori");
+        btnSimpan = new JButton("Simpan Kategori");
         btnSimpan.setBackground(new Color(52, 152, 219));
         btnSimpan.setForeground(Color.WHITE);
         btnSimpan.setFocusPainted(false);
@@ -148,9 +144,8 @@ btnMenu.addActionListener(e -> {
 
         String[] columns = {"Nama Kategori & Deskripsi", "Aksi"};
         tableModel = new DefaultTableModel(columns, 0);
-        refreshTable();
 
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setRowHeight(60);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         JScrollPane tableScroll = new JScrollPane(table);
@@ -159,48 +154,12 @@ btnMenu.addActionListener(e -> {
         mainLayout.add(contentGrid, BorderLayout.CENTER);
         add(mainLayout);
 
-        btnSimpan.addActionListener(e -> {
-            String nama = tfNama.getText().trim();
-            if (!nama.isEmpty()) {
-                kategoriList.add(new Category(nama));
-                refreshTable();
-                tfNama.setText("");
-                taDesc.setText("");
-                JOptionPane.showMessageDialog(this, "Kategori berhasil disimpan!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Nama kategori wajib diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = table.rowAtPoint(evt.getPoint());
-                int col = table.columnAtPoint(evt.getPoint());
-                if (col == 1 && row >= 0) {
-                    String[] options = {"Edit", "Hapus", "Batal"};
-                    int choice = JOptionPane.showOptionDialog(null, "Pilih aksi untuk kategori ini:", "Kelola Kategori",
-                            JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-                    if (choice == 0) {
-                        String baru = JOptionPane.showInputDialog(null, "Ubah nama kategori:", kategoriList.get(row).getNamaKategori());
-                        if (baru != null && !baru.trim().isEmpty()) {
-                            kategoriList.get(row).setNamaKategori(baru.trim());
-                            refreshTable();
-                            JOptionPane.showMessageDialog(null, "Kategori berhasil diperbarui!");
-                        }
-                    } else if (choice == 1) {
-                        int confirm = JOptionPane.showConfirmDialog(null, "Yakin ingin menghapus kategori ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-                        if (confirm == JOptionPane.YES_OPTION) {
-                            kategoriList.remove(row);
-                            refreshTable();
-                            JOptionPane.showMessageDialog(null, "Kategori berhasil dihapus!");
-                        }
-                    }
-                }
-            }
-        });
+        if (bindDefaultController) {
+            new AdminKelolaKategoriController(this).bind();
+        }
     }
 
-    private void refreshTable() {
+    public void renderTable(List<Category> kategoriList) {
         tableModel.setRowCount(0);
         for (Category c : kategoriList) {
             String desc = "Handphone, Laptop, Flashdisk, Charger";
@@ -215,7 +174,27 @@ btnMenu.addActionListener(e -> {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminKelolaKategoriFrame().setVisible(true));
+    public String getNamaKategori() { return tfNama.getText().trim(); }
+    public void setNamaKategori(String val) { tfNama.setText(val); }
+    public String getDeskripsiKategori() { return taDesc.getText().trim(); }
+    public void setDeskripsiKategori(String val) { taDesc.setText(val); }
+
+    public void addSimpanListener(ActionListener l) { btnSimpan.addActionListener(l); }
+
+    public void addTableActionClickListener(Consumer<Integer> onRowClicked) {
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                int row = table.rowAtPoint(evt.getPoint());
+                int col = table.columnAtPoint(evt.getPoint());
+                if (col == 1 && row >= 0) {
+                    onRowClicked.accept(row);
+                }
+            }
+        });
+    }
+
+    public void setMenuNavigationHandler(Consumer<Integer> handler) {
+        this.menuNavigationHandler = handler;
     }
 }

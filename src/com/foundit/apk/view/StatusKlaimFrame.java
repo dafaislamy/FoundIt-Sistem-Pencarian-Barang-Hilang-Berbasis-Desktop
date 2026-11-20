@@ -1,69 +1,55 @@
 package com.foundit.apk.view;
 
+import com.foundit.apk.controller.StatusKlaimController;
+import com.foundit.apk.model.ClaimRepository;
 import java.awt.*;
-import java.util.ArrayList;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Halaman untuk memantau status pengajuan klaim barang pengguna.
+ * Halaman untuk memantau status pengajuan klaim barang pengguna (View murni).
  */
 public class StatusKlaimFrame extends JFrame {
 
     private final String email, role;
-    private static final List<String[]> daftarKlaim = new ArrayList<>();
-    private static boolean initialized = false;
-
     private JPanel klaimListPanel;
     private JLabel jumlahKlaimLabel;
+    private JButton btnAjukan;
+    private final Map<String, Runnable> menuActions = new HashMap<>();
 
     public StatusKlaimFrame(String email, String role) {
+        this(email, role, true);
+    }
+
+    public StatusKlaimFrame(String email, String role, boolean bindDefaultController) {
         this.email = email;
         this.role = role;
-
-        if (!initialized) {
-            daftarKlaim.add(new String[]{
-                "Kunci Motor Yamaha Aerox",
-                "Menunggu Verifikasi",
-                "Aksesoris",
-                "Parkir Timur Kampus",
-                "Gantungan karet hitam logo Yamaha & stiker biru",
-                "Tertinggal di dashboard motor saat selesai kuliah sore"
-            });
-            daftarKlaim.add(new String[]{
-                "Tumbler Biru 600 ml",
-                "Klaim Disetujui",
-                "Lainnya",
-                "Kantin FMIPA",
-                "Merk Corkcicle warna biru navy, ada goresan di tutup",
-                "Tertinggal di meja pojok kanan dekat kasir"
-            });
-            initialized = true;
-        }
 
         UiKit.frame(this, "FoundIt | Status Klaim", 1200, 760);
         setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
+
+        if (bindDefaultController) {
+            new StatusKlaimController(this, email, role).bind();
+        }
     }
 
+    /**
+     * Delegasi ke ClaimRepository untuk menjaga kompatibilitas.
+     */
     public static void tambahKlaim(String namaBarang, String kategori, String lokasi, String ciri, String keterangan) {
-        daftarKlaim.add(new String[]{
-            namaBarang,
-            "Menunggu Verifikasi",
-            kategori,
-            lokasi,
-            ciri,
-            keterangan
-        });
-        initialized = true;
+        ClaimRepository.tambahKlaim(namaBarang, kategori, lokasi, ciri, keterangan);
     }
 
     private JPanel build() {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP 7 MENU SESUAI URUTAN
+        // SIDEBAR LENGKAP 8 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -77,23 +63,17 @@ public class StatusKlaimFrame extends JFrame {
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
 
         side.add(logo);
-        side.add(menu("Dashboard", "home", false, () -> openDashboard()));
-        side.add(menu("Cari Barang", "search", false, () -> openCariBarang()));
-        side.add(menu("Lapor Barang Hilang", "lost", false, () -> openLost()));
-        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> openFound()));
-        side.add(menu("Klaim Barang", "claim", false, () -> openKlaim()));
+        side.add(menu("Dashboard", "home", false, () -> triggerMenu("Dashboard")));
+        side.add(menu("Cari Barang", "search", false, () -> triggerMenu("Cari Barang")));
+        side.add(menu("Lapor Barang Hilang", "lost", false, () -> triggerMenu("Lapor Barang Hilang")));
+        side.add(menu("Lapor Barang Ditemukan", "found", false, () -> triggerMenu("Lapor Barang Ditemukan")));
+        side.add(menu("Klaim Barang", "claim", false, () -> triggerMenu("Klaim Barang")));
         side.add(menu("Status Klaim", "status", true, () -> {}));
-        side.add(menu("Riwayat Laporan", "history", false, () -> openRiwayatLaporan()));
-        side.add(menu("Profil", "profile", false, () -> {
-            new ProfilFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Riwayat Laporan", "history", false, () -> triggerMenu("Riwayat Laporan")));
+        side.add(menu("Profil", "profile", false, () -> triggerMenu("Profil")));
         side.add(Box.createVerticalGlue());
 
-        side.add(menu("Keluar", "return", false, () -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Keluar", "return", false, () -> triggerMenu("Keluar")));
         side.add(Box.createVerticalStrut(25));
 
         root.add(side, BorderLayout.WEST);
@@ -165,9 +145,8 @@ public class StatusKlaimFrame extends JFrame {
 
         JPanel headerRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         headerRight.setOpaque(false);
-        JButton btnAjukan = UiKit.button("+ Ajukan Klaim", UiKit.BLUE, Color.WHITE);
+        btnAjukan = UiKit.button("+ Ajukan Klaim", UiKit.BLUE, Color.WHITE);
         spaceButton(btnAjukan, 155, 42);
-        btnAjukan.addActionListener(e -> openKlaim());
         headerRight.add(btnAjukan);
 
         statusHeader.add(headerRight, BorderLayout.EAST);
@@ -176,8 +155,6 @@ public class StatusKlaimFrame extends JFrame {
         klaimListPanel = new JPanel();
         klaimListPanel.setOpaque(false);
         klaimListPanel.setLayout(new BoxLayout(klaimListPanel, BoxLayout.Y_AXIS));
-
-        refreshKlaimList();
 
         container.add(klaimListPanel, BorderLayout.CENTER);
         body.add(container);
@@ -194,9 +171,12 @@ public class StatusKlaimFrame extends JFrame {
         return root;
     }
 
-    private void refreshKlaimList() {
+    public void setJumlahKlaimText(String text) {
+        jumlahKlaimLabel.setText(text);
+    }
+
+    public void renderKlaimList(List<String[]> daftarKlaim, Runnable onAjukanKlaim) {
         klaimListPanel.removeAll();
-        jumlahKlaimLabel.setText(daftarKlaim.size() + " pengajuan klaim");
 
         if (daftarKlaim.isEmpty()) {
             JPanel emptyPanel = new JPanel();
@@ -213,7 +193,7 @@ public class StatusKlaimFrame extends JFrame {
             JButton btnEmpty = UiKit.button("Ajukan Klaim", UiKit.BLUE, Color.WHITE);
             spaceButton(btnEmpty, 145, 40);
             btnEmpty.setAlignmentX(Component.CENTER_ALIGNMENT);
-            btnEmpty.addActionListener(e -> openKlaim());
+            btnEmpty.addActionListener(e -> onAjukanKlaim.run());
 
             emptyPanel.add(emptyTitle);
             emptyPanel.add(Box.createVerticalStrut(8));
@@ -332,6 +312,21 @@ public class StatusKlaimFrame extends JFrame {
         return p;
     }
 
+    private void triggerMenu(String menuName) {
+        Runnable r = menuActions.get(menuName);
+        if (r != null) {
+            r.run();
+        }
+    }
+
+    public void setMenuAction(String menuName, Runnable action) {
+        menuActions.put(menuName, action);
+    }
+
+    public void addAjukanKlaimListener(ActionListener l) {
+        btnAjukan.addActionListener(l);
+    }
+
     private void spaceButton(JButton button, int width, int height) {
         button.setMargin(new Insets(8, 24, 8, 24));
         button.setBorder(new EmptyBorder(8, 24, 8, 24));
@@ -340,35 +335,5 @@ public class StatusKlaimFrame extends JFrame {
         button.setPreferredSize(new Dimension(width, height));
         button.setMinimumSize(new Dimension(width, height));
         button.setMaximumSize(new Dimension(width, height));
-    }
-
-    private void openDashboard() {
-        new UserDashboardFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openCariBarang() {
-        new CariBarangFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openLost() {
-        new LaporHilangFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openFound() {
-        new LaporDitemukanFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openKlaim() {
-        new KlaimFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void openRiwayatLaporan() {
-        new RiwayatLaporanFrame(email, role).setVisible(true);
-        dispose();
     }
 }

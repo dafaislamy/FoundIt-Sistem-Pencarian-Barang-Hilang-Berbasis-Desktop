@@ -1,18 +1,29 @@
-
 package com.foundit.apk.view;
 
+import com.foundit.apk.controller.IndexController;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 /**
- * Halaman pembuka FoundIt Desktop.
+ * Halaman pembuka FoundIt Desktop (View murni).
  */
 public class IndexFrame extends JFrame {
 
+    private JButton login;
+    private JButton start;
+
     public IndexFrame() {
+        this(true);
+    }
+
+    public IndexFrame(boolean bindDefaultController) {
         UiKit.frame(this, "FoundIt | Temukan Barangmu", 1200, 760);
         setContentPane(build());
+        if (bindDefaultController) {
+            new IndexController(this).bind();
+        }
     }
 
     private JPanel build() {
@@ -39,14 +50,9 @@ public class IndexFrame extends JFrame {
 
         nav.add(brand, BorderLayout.WEST);
 
-        JButton login = UiKit.button(
+        login = UiKit.button(
             "Masuk", UiKit.BLUE, Color.WHITE
         );
-
-        login.addActionListener(e -> {
-            new LoginFrame().setVisible(true);
-            dispose();
-        });
 
         nav.add(login, BorderLayout.EAST);
         root.add(nav, BorderLayout.NORTH);
@@ -102,18 +108,13 @@ public class IndexFrame extends JFrame {
         // Start Button
         c.gridy++;
 
-        JButton start = UiKit.button(
+        start = UiKit.button(
             "Mulai Sekarang", UiKit.GREEN, Color.WHITE
         );
 
         start.setPreferredSize(new Dimension(205, 50));
         start.setMinimumSize(new Dimension(205, 50));
         start.setMaximumSize(new Dimension(205, 50));
-
-        start.addActionListener(e -> {
-            new LoginFrame().setVisible(true);
-            dispose();
-        });
 
         hero.add(start, c);
 
@@ -192,5 +193,13 @@ public class IndexFrame extends JFrame {
         ));
 
         return p;
+    }
+
+    public void addLoginListener(ActionListener l) {
+        login.addActionListener(l);
+    }
+
+    public void addStartListener(ActionListener l) {
+        start.addActionListener(l);
     }
 }

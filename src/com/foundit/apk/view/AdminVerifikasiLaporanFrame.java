@@ -1,34 +1,30 @@
 package com.foundit.apk.view;
 
+import com.foundit.apk.controller.AdminVerifikasiLaporanController;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * Verifikasi Laporan - FoundIt Admin (View murni).
+ */
 public class AdminVerifikasiLaporanFrame extends JFrame {
-    private List<String[]> laporanList = new ArrayList<>();
+
     private JPanel cardsContainer;
+    private Consumer<Integer> menuNavigationHandler;
 
     public AdminVerifikasiLaporanFrame() {
+        this(true);
+    }
+
+    public AdminVerifikasiLaporanFrame(boolean bindDefaultController) {
         setTitle("Verifikasi Laporan - FoundIt Admin");
         setSize(1150, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-
-        // Data awal sesuai dengan kartu review laporan di admin-verifikasi-laporan.html
-        // Format: {Tipe, Waktu, Judul Barang, Pelapor, Info Nim/Fakultas, Kategori, Label Lokasi, Lokasi, Deskripsi, StatusDisetujui}
-        laporanList.add(new String[]{
-            "Laporan Kehilangan", "Diajukan 2 jam yang lalu", "MacBook Air M2 2023",
-            "Sarah Amelia", "NIM: 230102045 - FASILKOM", "Elektronik", "Lokasi Hilang:", "Kantin Utama",
-            "Warna Space Grey, ada goresan tipis di bagian bawah pojok kanan dan stiker GitHub.", "false"
-        });
-        laporanList.add(new String[]{
-            "Laporan Ditemukan", "Diajukan 4 jam yang lalu", "Kunci Motor Honda Vario",
-            "Budi Santoso", "NIM: 220101002 - FT", "Aksesoris", "Lokasi Ditemukan:", "Parkiran Gedung C",
-            "Kunci kontak remote hitam dengan gantungan tali merah bertuliskan 'One Heart'.", "false"
-        });
 
         // SIDEBAR NAVIGASI
         JPanel sidebar = new JPanel();
@@ -61,7 +57,6 @@ public class AdminVerifikasiLaporanFrame extends JFrame {
             btnMenu.setFocusPainted(false);
             btnMenu.setBorderPainted(false);
             
-            // Highlight menu ke-7 (indeks 6): "Verifikasi Laporan"
             if (i == 6) {
                 btnMenu.setBackground(new Color(234, 245, 252));
                 btnMenu.setForeground(new Color(52, 152, 219));
@@ -73,23 +68,9 @@ public class AdminVerifikasiLaporanFrame extends JFrame {
             }
 
             final int index = i;
-btnMenu.addActionListener(e -> {
-                dispose(); // Menutup frame yang sedang aktif
-                
-                if (index == 0) {
-                    new AdminDashboardFrame().setVisible(true);
-                } else if (index == 1) {
-                    new AdminKelolaKategoriFrame().setVisible(true);
-                } else if (index == 2) {
-                    new AdminKelolaLaporanFrame().setVisible(true);
-                } else if (index == 3) {
-                    new AdminKelolaUserFrame().setVisible(true);
-                } else if (index == 4) {
-                    new AdminUbahStatusFrame().setVisible(true);
-                } else if (index == 5) {
-                    new AdminVerifikasiKlaimFrame().setVisible(true);
-                } else if (index == 6) {
-                    new AdminVerifikasiLaporanFrame().setVisible(true);
+            btnMenu.addActionListener(e -> {
+                if (menuNavigationHandler != null) {
+                    menuNavigationHandler.accept(index);
                 }
             });
 
@@ -104,7 +85,7 @@ btnMenu.addActionListener(e -> {
         mainLayout.setBorder(new EmptyBorder(30, 40, 30, 40));
         mainLayout.setBackground(new Color(247, 249, 252));
 
-        // TOPBAR (Judul & Profil Admin)
+        // TOPBAR
         JPanel topBar = new JPanel(new BorderLayout());
         topBar.setOpaque(false);
 
@@ -122,15 +103,12 @@ btnMenu.addActionListener(e -> {
         topBar.add(titlePanel, BorderLayout.WEST);
         mainLayout.add(topBar, BorderLayout.NORTH);
 
-        // CONTAINER KARTU REVIEW LAPORAN (Grid 2 Kolom seperti .col-lg-6 di Bootstrap)
         cardsContainer = new JPanel(new GridLayout(1, 2, 20, 20));
         cardsContainer.setOpaque(false);
 
         JPanel wrapperPanel = new JPanel(new BorderLayout());
         wrapperPanel.setOpaque(false);
         wrapperPanel.add(cardsContainer, BorderLayout.NORTH);
-
-        refreshCards();
 
         JScrollPane scrollPane = new JScrollPane(wrapperPanel);
         scrollPane.setBorder(null);
@@ -139,9 +117,13 @@ btnMenu.addActionListener(e -> {
 
         mainLayout.add(scrollPane, BorderLayout.CENTER);
         add(mainLayout, BorderLayout.CENTER);
+
+        if (bindDefaultController) {
+            new AdminVerifikasiLaporanController(this).bind();
+        }
     }
 
-    private void refreshCards() {
+    public void renderCards(List<String[]> laporanList, Consumer<Integer> onTolak, Consumer<Integer> onSetuju) {
         cardsContainer.removeAll();
 
         if (laporanList.isEmpty()) {
@@ -158,10 +140,10 @@ btnMenu.addActionListener(e -> {
 
             for (int i = 0; i < laporanList.size(); i++) {
                 String[] item = laporanList.get(i);
-                cardsContainer.add(createReportCard(item, i));
+                final int idx = i;
+                cardsContainer.add(createReportCard(item, () -> onTolak.accept(idx), () -> onSetuju.accept(idx)));
             }
 
-            // Jika jumlah kartu ganjil, tambahkan panel kosong agar lebar kartu tetap setengah layar (col-lg-6)
             if (laporanList.size() % 2 != 0) {
                 JPanel dummy = new JPanel();
                 dummy.setOpaque(false);
@@ -173,7 +155,7 @@ btnMenu.addActionListener(e -> {
         cardsContainer.repaint();
     }
 
-    private JPanel createReportCard(String[] item, int index) {
+    private JPanel createReportCard(String[] item, Runnable onTolak, Runnable onSetuju) {
         boolean isApproved = Boolean.parseBoolean(item[9]);
 
         JPanel card = new JPanel(new BorderLayout(0, 15));
@@ -183,7 +165,7 @@ btnMenu.addActionListener(e -> {
             new EmptyBorder(22, 22, 22, 22)
         ));
 
-        // 1. Bagian Header Kartu (Badge & Waktu)
+        // 1. Bagian Header Kartu
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
@@ -192,13 +174,12 @@ btnMenu.addActionListener(e -> {
         badge.setOpaque(true);
         badge.setBorder(new EmptyBorder(5, 12, 5, 12));
 
-        // Warna sesuai dengan admin_3.css (.badge.bg-danger & .badge.bg-warning)
         if (item[0].toLowerCase().contains("kehilangan")) {
-            badge.setBackground(new Color(255, 244, 229)); // #fff4e5
-            badge.setForeground(new Color(214, 137, 16));  // #d68910
+            badge.setBackground(new Color(255, 244, 229));
+            badge.setForeground(new Color(214, 137, 16));
         } else {
-            badge.setBackground(new Color(234, 248, 239)); // #eaf8ef
-            badge.setForeground(new Color(39, 174, 96));   // #27ae60
+            badge.setBackground(new Color(234, 248, 239));
+            badge.setForeground(new Color(39, 174, 96));
         }
 
         JLabel timeLabel = new JLabel(item[1]);
@@ -208,7 +189,7 @@ btnMenu.addActionListener(e -> {
         headerPanel.add(badge, BorderLayout.WEST);
         headerPanel.add(timeLabel, BorderLayout.EAST);
 
-        // 2. Bagian Tengah (Judul Barang, Pelapor, & Kotak Abu-abu Detail)
+        // 2. Bagian Tengah
         JPanel bodyPanel = new JPanel();
         bodyPanel.setLayout(new BoxLayout(bodyPanel, BoxLayout.Y_AXIS));
         bodyPanel.setOpaque(false);
@@ -227,7 +208,7 @@ btnMenu.addActionListener(e -> {
         bodyPanel.add(reporterLabel);
         bodyPanel.add(Box.createRigidArea(new Dimension(0, 14)));
 
-        // Kotak Detail (.bg-light)
+        // Kotak Detail
         JPanel detailBox = new JPanel(new BorderLayout(0, 8));
         detailBox.setBackground(new Color(248, 249, 250));
         detailBox.setBorder(new EmptyBorder(14, 14, 14, 14));
@@ -256,55 +237,27 @@ btnMenu.addActionListener(e -> {
         JButton btnTolak = new JButton("Tolak Laporan");
         btnTolak.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnTolak.setBackground(Color.WHITE);
-        btnTolak.setForeground(new Color(231, 76, 60)); // Merah #e74c3c
+        btnTolak.setForeground(new Color(231, 76, 60));
         btnTolak.setBorder(BorderFactory.createLineBorder(new Color(231, 76, 60), 1));
         btnTolak.setFocusPainted(false);
         btnTolak.setPreferredSize(new Dimension(0, 38));
 
         JButton btnSetuju = new JButton(isApproved ? "Telah Dipublikasikan ✓" : "Setujui & Publikasikan");
         btnSetuju.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnSetuju.setBackground(isApproved ? new Color(149, 165, 166) : new Color(52, 152, 219)); // Biru #3498db
+        btnSetuju.setBackground(isApproved ? new Color(149, 165, 166) : new Color(52, 152, 219));
         btnSetuju.setForeground(Color.WHITE);
         btnSetuju.setFocusPainted(false);
         btnSetuju.setBorderPainted(false);
         btnSetuju.setPreferredSize(new Dimension(0, 38));
 
-        // Jika sudah disetujui, nonaktifkan tombol (konversi dari pointerEvents = "none" & opacity = "0.6" di admin_3.js)
         if (isApproved) {
             btnTolak.setEnabled(false);
             btnTolak.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
             btnSetuju.setEnabled(false);
         }
 
-        // Event Tombol Tolak Laporan (sesuai prompt alasan penolakan di admin_3.js)
-        btnTolak.addActionListener(e -> {
-            String alasan = JOptionPane.showInputDialog(
-                this,
-                "Masukkan alasan penolakan laporan:",
-                "Tolak Laporan",
-                JOptionPane.QUESTION_MESSAGE
-            );
-            if (alasan != null && !alasan.trim().isEmpty()) {
-                laporanList.remove(index);
-                refreshCards();
-                JOptionPane.showMessageDialog(this, "⚠️ Laporan telah ditolak.", "Notifikasi", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-
-        // Event Tombol Setujui & Publikasikan (sesuai confirm dialog di admin_3.js)
-        btnSetuju.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Setujui laporan ini agar dapat dilihat oleh mahasiswa?",
-                "Konfirmasi Publikasi",
-                JOptionPane.YES_NO_OPTION
-            );
-            if (confirm == JOptionPane.YES_OPTION) {
-                item[9] = "true";
-                refreshCards();
-                JOptionPane.showMessageDialog(this, "✅ Laporan berhasil disetujui & dipublikasikan!", "Notifikasi", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
+        btnTolak.addActionListener(e -> onTolak.run());
+        btnSetuju.addActionListener(e -> onSetuju.run());
 
         footerPanel.add(btnTolak);
         footerPanel.add(btnSetuju);
@@ -316,7 +269,7 @@ btnMenu.addActionListener(e -> {
         return card;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminVerifikasiLaporanFrame().setVisible(true));
+    public void setMenuNavigationHandler(Consumer<Integer> handler) {
+        this.menuNavigationHandler = handler;
     }
 }

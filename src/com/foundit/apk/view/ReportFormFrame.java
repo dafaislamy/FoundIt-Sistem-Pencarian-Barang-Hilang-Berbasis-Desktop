@@ -1,22 +1,31 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.data.ReportRepository;
+import com.foundit.apk.controller.ReportController;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Form laporan memenuhi area kerja dengan sidebar navigasi 7 menu.
+ * Form laporan dasar dengan sidebar navigasi 8 menu (View murni).
  */
-abstract class ReportFormFrame extends JFrame {
+public abstract class ReportFormFrame extends JFrame {
 
     private final String email, role, type, title;
     private JTextField name, location, date, photo;
     private JComboBox<String> category;
     private JTextArea description;
+    private JButton choose, reset, cancel, submit, back;
+    private final Map<String, Runnable> menuActions = new HashMap<>();
 
-    ReportFormFrame(String email, String role, String type, String title) {
+    public ReportFormFrame(String email, String role, String type, String title) {
+        this(email, role, type, title, true);
+    }
+
+    public ReportFormFrame(String email, String role, String type, String title, boolean bindDefaultController) {
         this.email = email;
         this.role = role;
         this.type = type;
@@ -25,13 +34,17 @@ abstract class ReportFormFrame extends JFrame {
         UiKit.frame(this, "FoundIt | " + title, 1200, 760);
         setMinimumSize(new Dimension(1000, 650));
         setContentPane(build());
+
+        if (bindDefaultController) {
+            new ReportController(this, email, role, type, title).bind();
+        }
     }
 
     private JPanel build() {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiKit.BG);
 
-        // SIDEBAR LENGKAP 7 MENU SESUAI URUTAN
+        // SIDEBAR LENGKAP 8 MENU
         JPanel side = new JPanel();
         side.setBackground(Color.WHITE);
         side.setPreferredSize(new Dimension(238, 0));
@@ -46,62 +59,32 @@ abstract class ReportFormFrame extends JFrame {
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
 
         side.add(logo);
-        side.add(menu("Dashboard", "home", false, () -> dashboard()));
-        side.add(menu("Cari Barang", "search", false, () -> {
-            new CariBarangFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Dashboard", "home", false, () -> triggerMenu("Dashboard")));
+        side.add(menu("Cari Barang", "search", false, () -> triggerMenu("Cari Barang")));
         side.add(menu(
             "Lapor Barang Hilang",
             "lost",
             type.equals("HILANG"),
-            () -> {
-                if (!type.equals("HILANG")) {
-                    new LaporHilangFrame(email, role).setVisible(true);
-                    dispose();
-                }
-            }
+            () -> triggerMenu("Lapor Barang Hilang")
         ));
         side.add(menu(
             "Lapor Barang Ditemukan",
             "found",
             type.equals("DITEMUKAN"),
-            () -> {
-                if (!type.equals("DITEMUKAN")) {
-                    new LaporDitemukanFrame(email, role).setVisible(true);
-                    dispose();
-                }
-            }
+            () -> triggerMenu("Lapor Barang Ditemukan")
         ));
-        side.add(menu("Klaim Barang", "claim", false, () -> {
-            new KlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Status Klaim", "status", false, () -> {
-            new StatusKlaimFrame(email, role).setVisible(true);
-            dispose();
-        }));
-        side.add(menu("Riwayat Laporan", "history", false, () -> {
-            new RiwayatLaporanFrame(email, role).setVisible(true);
-            dispose();
-        }));
-
-        side.add(menu("Profil", "profile", false, () -> {
-            new ProfilFrame(email, role).setVisible(true);
-            dispose();
-        }));
+        side.add(menu("Klaim Barang", "claim", false, () -> triggerMenu("Klaim Barang")));
+        side.add(menu("Status Klaim", "status", false, () -> triggerMenu("Status Klaim")));
+        side.add(menu("Riwayat Laporan", "history", false, () -> triggerMenu("Riwayat Laporan")));
+        side.add(menu("Profil", "profile", false, () -> triggerMenu("Profil")));
 
         side.add(Box.createVerticalGlue());
 
-        side.add(menu("Keluar", "return", false, () -> {
-            new IndexFrame().setVisible(true);
-            dispose();
-        }));
-
+        side.add(menu("Keluar", "return", false, () -> triggerMenu("Keluar")));
         side.add(Box.createVerticalStrut(25));
         root.add(side, BorderLayout.WEST);
 
-        // AREA KANAN (KONTEN + FOOTER)
+        // AREA KANAN
         JPanel rightArea = new JPanel(new BorderLayout());
         rightArea.setOpaque(false);
 
@@ -109,9 +92,7 @@ abstract class ReportFormFrame extends JFrame {
         top.setBackground(Color.WHITE);
         top.setBorder(new EmptyBorder(16, 30, 16, 30));
 
-        JButton back = UiKit.button("Kembali ke Dashboard", UiKit.PALE, UiKit.BLUE_DARK);
-        back.addActionListener(e -> dashboard());
-
+        back = UiKit.button("Kembali ke Dashboard", UiKit.PALE, UiKit.BLUE_DARK);
         top.add(back, BorderLayout.WEST);
         top.add(UiKit.label("FoundIt", 23, true, UiKit.BLUE), BorderLayout.EAST);
 
@@ -125,7 +106,6 @@ abstract class ReportFormFrame extends JFrame {
             title,
             "Lengkapi informasi berikut dengan jelas agar laporan mudah dipahami."
         );
-
         content.add(heading, BorderLayout.NORTH);
 
         JPanel form = new JPanel(new GridBagLayout());
@@ -188,8 +168,7 @@ abstract class ReportFormFrame extends JFrame {
         photo = UiKit.field();
         photo.setEditable(false);
 
-        JButton choose = UiKit.button("Pilih Foto", UiKit.PALE, UiKit.BLUE_DARK);
-        choose.addActionListener(e -> choosePhoto());
+        choose = UiKit.button("Pilih Foto", UiKit.PALE, UiKit.BLUE_DARK);
 
         JPanel photoRow = new JPanel(new BorderLayout(10, 0));
         photoRow.setOpaque(false);
@@ -200,14 +179,9 @@ abstract class ReportFormFrame extends JFrame {
 
         content.add(form, BorderLayout.CENTER);
 
-        JButton reset = UiKit.button("Reset Form", new Color(255, 238, 236), new Color(190, 70, 60));
-        reset.addActionListener(e -> resetForm());
-
-        JButton cancel = UiKit.button("Batal", new Color(237, 241, 245), UiKit.TEXT);
-        cancel.addActionListener(e -> dashboard());
-
-        JButton submit = UiKit.button("Kirim Laporan", UiKit.BLUE, Color.WHITE);
-        submit.addActionListener(e -> submit());
+        reset = UiKit.button("Reset Form", new Color(255, 238, 236), new Color(190, 70, 60));
+        cancel = UiKit.button("Batal", new Color(237, 241, 245), UiKit.TEXT);
+        submit = UiKit.button("Kirim Laporan", UiKit.BLUE, Color.WHITE);
 
         JScrollPane sc = new JScrollPane(content);
         sc.setBorder(null);
@@ -251,7 +225,18 @@ abstract class ReportFormFrame extends JFrame {
         return p;
     }
 
-    private void resetForm() {
+    private void triggerMenu(String menuName) {
+        Runnable r = menuActions.get(menuName);
+        if (r != null) {
+            r.run();
+        }
+    }
+
+    public void setMenuAction(String menuName, Runnable action) {
+        menuActions.put(menuName, action);
+    }
+
+    public void resetFormFields() {
         name.setText("");
         category.setSelectedIndex(0);
         location.setText("");
@@ -261,60 +246,18 @@ abstract class ReportFormFrame extends JFrame {
         name.requestFocus();
     }
 
-    private void choosePhoto() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Pilih foto barang");
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            photo.setText(chooser.getSelectedFile().getAbsolutePath());
-        }
-    }
+    public String getNameInput() { return name.getText().trim(); }
+    public String getCategoryInput() { return (String) category.getSelectedItem(); }
+    public String getLocationInput() { return location.getText().trim(); }
+    public String getDateInput() { return date.getText().trim(); }
+    public String getDescriptionInput() { return description.getText().trim(); }
+    public String getPhotoInput() { return photo.getText(); }
+    public void setPhotoInput(String path) { photo.setText(path); }
+    public void focusName() { name.requestFocus(); }
 
-    private void submit() {
-        if (name.getText().trim().isEmpty()
-                || location.getText().trim().isEmpty()
-                || description.getText().trim().isEmpty()) {
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Nama barang, lokasi, dan deskripsi wajib diisi.",
-                "Data belum lengkap",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-
-        LocalDate d;
-        try {
-            d = LocalDate.parse(date.getText().trim());
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Tanggal harus menggunakan format YYYY-MM-DD.",
-                "Tanggal tidak valid",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-
-        ReportRepository.getInstance().add(
-            new ReportRepository.Report(
-                name.getText().trim(),
-                type,
-                (String) category.getSelectedItem(),
-                location.getText().trim(),
-                description.getText().trim(),
-                d,
-                photo.getText()
-            )
-        );
-
-        UiKit.info(this, "Laporan berhasil ditambahkan untuk sesi aplikasi ini.");
-        new RiwayatLaporanFrame(email, role).setVisible(true);
-        dispose();
-    }
-
-    private void dashboard() {
-        new UserDashboardFrame(email, role).setVisible(true);
-        dispose();
-    }
+    public void addChoosePhotoListener(ActionListener l) { choose.addActionListener(l); }
+    public void addResetListener(ActionListener l) { reset.addActionListener(l); }
+    public void addCancelListener(ActionListener l) { cancel.addActionListener(l); }
+    public void addSubmitListener(ActionListener l) { submit.addActionListener(l); }
+    public void addBackListener(ActionListener l) { back.addActionListener(l); }
 }

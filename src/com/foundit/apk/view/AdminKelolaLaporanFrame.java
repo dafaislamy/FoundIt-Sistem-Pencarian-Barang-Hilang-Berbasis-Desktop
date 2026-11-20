@@ -1,41 +1,43 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.*;
+import com.foundit.apk.controller.AdminKelolaLaporanController;
+import com.foundit.apk.model.Item;
 import java.awt.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
+/**
+ * Kelola Laporan Barang - FoundIt Admin (View murni).
+ */
 public class AdminKelolaLaporanFrame extends JFrame {
-    private List<Item> laporanList = new ArrayList<>();
+
     private DefaultTableModel tableModel;
     private JTable table;
     private TableRowSorter<DefaultTableModel> rowSorter;
+    private JTextField tfSearch;
+    private JComboBox<String> cbStatus;
+    private JComboBox<String> cbKategori;
+    private JButton btnReset;
+    private Consumer<Integer> menuNavigationHandler;
 
     public AdminKelolaLaporanFrame() {
+        this(true);
+    }
+
+    public AdminKelolaLaporanFrame(boolean bindDefaultController) {
         setTitle("Kelola Laporan Barang - FoundIt Admin");
         setSize(1150, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-
-        Category katElektronik = new Category("Elektronik");
-        Category katAksesoris = new Category("Aksesoris");
-        User pelapor1 = new User("U1", "Budi Santoso", "220101002", "budi@campus.ac.id", "123", "081234567890", Role.MAHASISWA);
-        User pelapor2 = new User("U2", "Sarah Amelia", "230102045", "sarah@campus.ac.id", "123", "089876543211", Role.MAHASISWA);
-
-        Item item1 = new Item("I1", "Flashdisk SanDisk 64GB", "Warna merah hitam", ItemType.LOST, "Gedung C Fakultas Teknik", LocalDate.now(), katElektronik, pelapor1);
-        item1.updateStatus(ItemStatus.PUBLISHED);
-
-        Item item2 = new Item("I2", "Kunci Motor Yamaha", "Gantungan kulit coklat", ItemType.FIND, "Area Parkir Timur", LocalDate.now(), katAksesoris, pelapor2);
-        item2.updateStatus(ItemStatus.PUBLISHED);
-
-        laporanList.add(item1);
-        laporanList.add(item2);
 
         JPanel sidebar = new JPanel();
         sidebar.setBackground(Color.WHITE);
@@ -78,23 +80,9 @@ public class AdminKelolaLaporanFrame extends JFrame {
             }
 
             final int index = i;
-btnMenu.addActionListener(e -> {
-                dispose(); // Menutup frame yang sedang aktif
-                
-                if (index == 0) {
-                    new AdminDashboardFrame().setVisible(true);
-                } else if (index == 1) {
-                    new AdminKelolaKategoriFrame().setVisible(true);
-                } else if (index == 2) {
-                    new AdminKelolaLaporanFrame().setVisible(true);
-                } else if (index == 3) {
-                    new AdminKelolaUserFrame().setVisible(true);
-                } else if (index == 4) {
-                    new AdminUbahStatusFrame().setVisible(true);
-                } else if (index == 5) {
-                    new AdminVerifikasiKlaimFrame().setVisible(true);
-                } else if (index == 6) {
-                    new AdminVerifikasiLaporanFrame().setVisible(true);
+            btnMenu.addActionListener(e -> {
+                if (menuNavigationHandler != null) {
+                    menuNavigationHandler.accept(index);
                 }
             });
 
@@ -130,11 +118,11 @@ btnMenu.addActionListener(e -> {
         ));
         filterCard.setMaximumSize(new Dimension(2000, 75));
 
-        JTextField tfSearch = new JTextField();
-        JComboBox<String> cbStatus = new JComboBox<>(new String[]{"Semua Status", "Aktif", "Proses Klaim", "Dikembalikan"});
-        JComboBox<String> cbKategori = new JComboBox<>(new String[]{"Semua Kategori", "Elektronik", "Dokumen", "Aksesoris", "Lainnya"});
+        tfSearch = new JTextField();
+        cbStatus = new JComboBox<>(new String[]{"Semua Status", "Aktif", "Proses Klaim", "Dikembalikan"});
+        cbKategori = new JComboBox<>(new String[]{"Semua Kategori", "Elektronik", "Dokumen", "Aksesoris", "Lainnya"});
         
-        JButton btnReset = new JButton("Reset Filter");
+        btnReset = new JButton("Reset Filter");
         btnReset.setBackground(Color.WHITE);
         btnReset.setFocusPainted(false);
 
@@ -147,7 +135,6 @@ btnMenu.addActionListener(e -> {
 
         String[] columns = {"Barang", "Kategori", "Jenis Laporan", "Lokasi Kejadian", "Status Saat Ini", "Aksi"};
         tableModel = new DefaultTableModel(columns, 0);
-        refreshTable();
 
         table = new JTable(tableModel);
         table.setRowHeight(60);
@@ -156,51 +143,16 @@ btnMenu.addActionListener(e -> {
         rowSorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(rowSorter);
 
-        tfSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
-            
-            private void filterTable() {
-                String text = tfSearch.getText();
-                if (text.trim().length() == 0) {
-                    rowSorter.setRowFilter(null);
-                } else {
-                    rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
-                }
-            }
-        });
-
-        btnReset.addActionListener(e -> {
-            tfSearch.setText("");
-            cbStatus.setSelectedIndex(0);
-            cbKategori.setSelectedIndex(0);
-            rowSorter.setRowFilter(null);
-        });
-
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = table.rowAtPoint(evt.getPoint());
-                int col = table.columnAtPoint(evt.getPoint());
-                if (col == 5 && row >= 0) {
-                    int modelRow = table.convertRowIndexToModel(row);
-                    String[] newStatuses = {"Aktif", "Proses Klaim", "Dikembalikan", "Ditutup"};
-                    String selected = (String) JOptionPane.showInputDialog(null, "Pilih Status Baru:", "Ubah Status Barang",
-                            JOptionPane.QUESTION_MESSAGE, null, newStatuses, newStatuses[0]);
-                    if (selected != null) {
-                        laporanList.get(modelRow).updateStatus(ItemStatus.COMPLETED);
-                        JOptionPane.showMessageDialog(null, "Status barang berhasil diperbarui menjadi: " + selected);
-                    }
-                }
-            }
-        });
-
         centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
         mainLayout.add(centerPanel, BorderLayout.CENTER);
         add(mainLayout);
+
+        if (bindDefaultController) {
+            new AdminKelolaLaporanController(this).bind();
+        }
     }
 
-    private void refreshTable() {
+    public void renderTable(List<Item> laporanList) {
         tableModel.setRowCount(0);
         for (Item item : laporanList) {
             String katName = (item.getCategory() != null) ? item.getCategory().getNamaKategori() : "-";
@@ -215,7 +167,41 @@ btnMenu.addActionListener(e -> {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminKelolaLaporanFrame().setVisible(true));
+    public void applyFilter(String text) {
+        if (text == null || text.trim().length() == 0) {
+            rowSorter.setRowFilter(null);
+        } else {
+            rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+        }
+    }
+
+    public void resetFilterFields() {
+        tfSearch.setText("");
+        cbStatus.setSelectedIndex(0);
+        cbKategori.setSelectedIndex(0);
+        rowSorter.setRowFilter(null);
+    }
+
+    public String getSearchText() { return tfSearch.getText(); }
+
+    public void addSearchDocumentListener(DocumentListener l) { tfSearch.getDocument().addDocumentListener(l); }
+    public void addResetListener(ActionListener l) { btnReset.addActionListener(l); }
+
+    public void addTableActionClickListener(Consumer<Integer> onRowClicked) {
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                int row = table.rowAtPoint(evt.getPoint());
+                int col = table.columnAtPoint(evt.getPoint());
+                if (col == 5 && row >= 0) {
+                    int modelRow = table.convertRowIndexToModel(row);
+                    onRowClicked.accept(modelRow);
+                }
+            }
+        });
+    }
+
+    public void setMenuNavigationHandler(Consumer<Integer> handler) {
+        this.menuNavigationHandler = handler;
     }
 }

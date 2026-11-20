@@ -1,20 +1,34 @@
 package com.foundit.apk.view;
 
-import com.foundit.apk.*;
+import com.foundit.apk.controller.AdminVerifikasiKlaimController;
+import com.foundit.apk.model.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * Verifikasi Klaim - FoundIt Admin (View murni).
+ */
 public class AdminVerifikasiKlaimFrame extends JFrame {
+
+    private JButton btnTolak, btnSetuju;
+    private JLabel lblStatus;
+    private Consumer<Integer> menuNavigationHandler;
+
     public AdminVerifikasiKlaimFrame() {
+        this(true);
+    }
+
+    public AdminVerifikasiKlaimFrame(boolean bindDefaultController) {
         setTitle("Verifikasi Klaim - FoundIt Admin");
         setSize(1150, 580);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        User adminUser = new User("ADM1", "Admin Kampus", "999", "admin@univ.ac.id", "123", "0811", Role.ADMIN);
         User pemohon = new User("U100", "Ahmad Fauzi", "220104112", "ahmad@student.ac.id", "123", "081234", Role.MAHASISWA);
         Item barangTemuan = new Item("ITM1", "Kunci Motor Yamaha", "Remote alarm & gantungan", ItemType.FIND, "Parkir Barat", LocalDate.now(), null, null);
         Claim claimTiket = new Claim("KLM-092", "Kunci Yamaha Aerox, gantungan tim Futsal Elektro", barangTemuan, pemohon);
@@ -60,23 +74,9 @@ public class AdminVerifikasiKlaimFrame extends JFrame {
             }
 
             final int index = i;
-btnMenu.addActionListener(e -> {
-                dispose(); // Menutup frame yang sedang aktif
-                
-                if (index == 0) {
-                    new AdminDashboardFrame().setVisible(true);
-                } else if (index == 1) {
-                    new AdminKelolaKategoriFrame().setVisible(true);
-                } else if (index == 2) {
-                    new AdminKelolaLaporanFrame().setVisible(true);
-                } else if (index == 3) {
-                    new AdminKelolaUserFrame().setVisible(true);
-                } else if (index == 4) {
-                    new AdminUbahStatusFrame().setVisible(true);
-                } else if (index == 5) {
-                    new AdminVerifikasiKlaimFrame().setVisible(true);
-                } else if (index == 6) {
-                    new AdminVerifikasiLaporanFrame().setVisible(true);
+            btnMenu.addActionListener(e -> {
+                if (menuNavigationHandler != null) {
+                    menuNavigationHandler.accept(index);
                 }
             });
 
@@ -111,7 +111,7 @@ btnMenu.addActionListener(e -> {
         JPanel ticketHeader = new JPanel(new BorderLayout());
         ticketHeader.setOpaque(false);
         JLabel lblTicket = new JLabel("<html><font color='#3498db'><b>Tiket Klaim #" + claimTiket.getId() + "</b></font><br><h2 style='margin-top:6px;'>Klaim atas: " + barangTemuan.getJudul() + "</h2></html>");
-        JLabel lblStatus = new JLabel(" " + claimTiket.getStatusKlaim() + " ");
+        lblStatus = new JLabel(" " + claimTiket.getStatusKlaim() + " ");
         lblStatus.setForeground(new Color(214, 137, 16));
         lblStatus.setFont(new Font("Segoe UI", Font.BOLD, 13));
         ticketHeader.add(lblTicket, BorderLayout.WEST);
@@ -146,11 +146,11 @@ btnMenu.addActionListener(e -> {
         JPanel actionFooter = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionFooter.setOpaque(false);
         
-        JButton btnTolak = new JButton("Tolak Klaim");
+        btnTolak = new JButton("Tolak Klaim");
         btnTolak.setForeground(new Color(220, 53, 69));
         btnTolak.setFocusPainted(false);
         
-        JButton btnSetuju = new JButton("Setujui & Hubungi Pemilik");
+        btnSetuju = new JButton("Setujui & Hubungi Pemilik");
         btnSetuju.setBackground(new Color(40, 167, 69));
         btnSetuju.setForeground(Color.WHITE);
         btnSetuju.setFocusPainted(false);
@@ -162,22 +162,19 @@ btnMenu.addActionListener(e -> {
         mainLayout.add(claimCard, BorderLayout.CENTER);
         add(mainLayout);
 
-        btnSetuju.addActionListener(e -> {
-            claimTiket.approve(adminUser);
-            JOptionPane.showMessageDialog(this, "Klaim berhasil disetujui!");
-            dispose();
-            new AdminDashboardFrame().setVisible(true);
-        });
-
-        btnTolak.addActionListener(e -> {
-            claimTiket.reject(adminUser);
-            JOptionPane.showMessageDialog(this, "Klaim ditolak.");
-            dispose();
-            new AdminDashboardFrame().setVisible(true);
-        });
+        if (bindDefaultController) {
+            new AdminVerifikasiKlaimController(this).bind();
+        }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminVerifikasiKlaimFrame().setVisible(true));
+    public void setClaimStatusText(String status) {
+        lblStatus.setText(" " + status + " ");
+    }
+
+    public void addTolakListener(ActionListener l) { btnTolak.addActionListener(l); }
+    public void addSetujuListener(ActionListener l) { btnSetuju.addActionListener(l); }
+
+    public void setMenuNavigationHandler(Consumer<Integer> handler) {
+        this.menuNavigationHandler = handler;
     }
 }

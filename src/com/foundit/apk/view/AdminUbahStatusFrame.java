@@ -1,34 +1,39 @@
 package com.foundit.apk.view;
 
-
+import com.foundit.apk.controller.AdminUbahStatusController;
 import java.awt.*;
-import java.util.ArrayList;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
+/**
+ * Ubah Status Barang - FoundIt Admin (View murni).
+ */
 public class AdminUbahStatusFrame extends JFrame {
-    private List<String[]> barangList = new ArrayList<>();
-    private List<Integer> displayedIndices = new ArrayList<>();
+
     private DefaultTableModel tableModel;
+    private JTable table;
     private JTextField tfSearch;
     private JComboBox<String> cbStatus;
+    private Consumer<Integer> menuNavigationHandler;
 
     public AdminUbahStatusFrame() {
+        this(true);
+    }
+
+    public AdminUbahStatusFrame(boolean bindDefaultController) {
         setTitle("Ubah Status Barang - FoundIt Admin");
         setSize(1150, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-
-        // Data awal sesuai dengan tabel pada admin-ubah-status.html
-        barangList.add(new String[]{"#BRG-1029", "Flashdisk SanDisk 64GB", "Elektronik", "Rian Pratama", "Teknik Mesin", "Gedung C Fakultas Teknik", "Hilang"});
-        barangList.add(new String[]{"#BRG-1034", "Kunci Motor Yamaha Aerox", "Aksesoris", "Budi Santoso", "Teknik Elektro", "Parkir Timur Kampus", "Ditemukan"});
-        barangList.add(new String[]{"#BRG-0992", "Dompet Kulit Hitam", "Aksesoris", "Sarah Amelia", "Sistem Informasi", "Perpustakaan Lt. 2", "Dalam Proses Klaim"});
-        barangList.add(new String[]{"#BRG-0871", "KTM atas nama Dimas A.", "Dokumen", "Petugas Satpam Rektorat", "Staff", "Lobi Rektorat", "Telah Dikembalikan"});
 
         // SIDEBAR NAVIGASI
         JPanel sidebar = new JPanel();
@@ -61,7 +66,6 @@ public class AdminUbahStatusFrame extends JFrame {
             btnMenu.setFocusPainted(false);
             btnMenu.setBorderPainted(false);
             
-            // Highlight menu ke-5 (indeks 4): "Ubah Status Barang"
             if (i == 4) {
                 btnMenu.setBackground(new Color(234, 245, 252));
                 btnMenu.setForeground(new Color(52, 152, 219));
@@ -73,23 +77,9 @@ public class AdminUbahStatusFrame extends JFrame {
             }
 
             final int index = i;
-btnMenu.addActionListener(e -> {
-                dispose(); // Menutup frame yang sedang aktif
-                
-                if (index == 0) {
-                    new AdminDashboardFrame().setVisible(true);
-                } else if (index == 1) {
-                    new AdminKelolaKategoriFrame().setVisible(true);
-                } else if (index == 2) {
-                    new AdminKelolaLaporanFrame().setVisible(true);
-                } else if (index == 3) {
-                    new AdminKelolaUserFrame().setVisible(true);
-                } else if (index == 4) {
-                    new AdminUbahStatusFrame().setVisible(true);
-                } else if (index == 5) {
-                    new AdminVerifikasiKlaimFrame().setVisible(true);
-                } else if (index == 6) {
-                    new AdminVerifikasiLaporanFrame().setVisible(true);
+            btnMenu.addActionListener(e -> {
+                if (menuNavigationHandler != null) {
+                    menuNavigationHandler.accept(index);
                 }
             });
 
@@ -154,7 +144,6 @@ btnMenu.addActionListener(e -> {
         controlCard.add(filterPanel);
         centerPanel.add(controlCard, BorderLayout.NORTH);
 
-        // TABEL KONTROL STATUS BARANG
         String[] columns = {"Barang", "Kategori", "Pelapor / Penemu", "Lokasi Terakhir", "Status Saat Ini", "Tindakan"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -162,128 +151,107 @@ btnMenu.addActionListener(e -> {
                 return false;
             }
         };
-        refreshTable();
 
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setRowHeight(60);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-
-        // Event Pencarian & Filter Otomatis (Konversi dari jalankanFilterUniversal di admin.js)
-        tfSearch.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { refreshTable(); }
-            public void removeUpdate(DocumentEvent e) { refreshTable(); }
-            public void changedUpdate(DocumentEvent e) { refreshTable(); }
-        });
-        cbStatus.addActionListener(e -> refreshTable());
-
-        // Event Klik Kolom Tindakan (Konversi dari #modalUpdateStatus di HTML & admin.js)
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = table.rowAtPoint(evt.getPoint());
-                int col = table.columnAtPoint(evt.getPoint());
-                if (col == 5 && row >= 0) {
-                    int actualIndex = displayedIndices.get(row);
-                    String[] item = barangList.get(actualIndex);
-
-                    JTextField tfTargetBarang = new JTextField(item[1] + " (" + item[0] + ")");
-                    tfTargetBarang.setEditable(false);
-                    tfTargetBarang.setBackground(new Color(240, 240, 240));
-
-                    String[] opsiStatus = {
-                        "Hilang (Masih Dicari)",
-                        "Ditemukan (Tersimpan di Pos Keamanan/Admin)",
-                        "Dalam Proses Verifikasi Klaim",
-                        "Telah Dikembalikan (Klaim Berhasil / Selesai)",
-                        "Dibatalkan / Kedaluwarsa"
-                    };
-                    JComboBox<String> cbStatusBaru = new JComboBox<>(opsiStatus);
-
-                    String currentStatus = item[6].toLowerCase();
-                    if (currentStatus.contains("hilang")) cbStatusBaru.setSelectedIndex(0);
-                    else if (currentStatus.contains("ditemukan")) cbStatusBaru.setSelectedIndex(1);
-                    else if (currentStatus.contains("klaim")) cbStatusBaru.setSelectedIndex(2);
-                    else if (currentStatus.contains("dikembalikan") || currentStatus.contains("selesai")) cbStatusBaru.setSelectedIndex(3);
-                    else if (currentStatus.contains("batal")) cbStatusBaru.setSelectedIndex(4);
-
-                    JTextField tfPenerima = new JTextField();
-                    JTextArea taCatatan = new JTextArea(3, 20);
-                    taCatatan.setLineWrap(true);
-                    taCatatan.setWrapStyleWord(true);
-                    JScrollPane scrollCatatan = new JScrollPane(taCatatan);
-
-                    Object[] message = {
-                        "Informasi Barang:", tfTargetBarang,
-                        "Pilih Status Baru:", cbStatusBaru,
-                        "Pihak Penerima / Pengambil (Opsional):", tfPenerima,
-                        "Catatan / Berita Acara Penyerahan:", scrollCatatan
-                    };
-
-                    int option = JOptionPane.showConfirmDialog(
-                        null, message, "Formulir Pembaruan Status Barang", JOptionPane.OK_CANCEL_OPTION
-                    );
-
-                    if (option == JOptionPane.OK_OPTION) {
-                        String selectedText = (String) cbStatusBaru.getSelectedItem();
-                        // Memotong teks sebelum tanda kurung '(' sesuai logika split("(")[0].trim() di admin.js
-                        String statusBersih = selectedText != null ? selectedText.split("\\(")[0].trim() : "Diperbarui";
-                        item[6] = statusBersih;
-                        refreshTable();
-                        JOptionPane.showMessageDialog(null, "Status barang berhasil diperbarui!");
-                    }
-                }
-            }
-        });
 
         centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
         mainLayout.add(centerPanel, BorderLayout.CENTER);
         add(mainLayout);
+
+        if (bindDefaultController) {
+            new AdminUbahStatusController(this).bind();
+        }
     }
 
-    private void refreshTable() {
+    public void renderTable(List<String[]> filteredList) {
         tableModel.setRowCount(0);
-        displayedIndices.clear();
+        for (String[] b : filteredList) {
+            String statusColor = "#3498db";
+            String sLower = b[6].toLowerCase();
+            if (sLower.contains("hilang")) statusColor = "#d68910";
+            else if (sLower.contains("ditemukan") || sLower.contains("dikembalikan")) statusColor = "#27ae60";
+            else if (sLower.contains("batal")) statusColor = "#7f8c8d";
 
-        String keyword = tfSearch != null ? tfSearch.getText().trim().toLowerCase() : "";
-        String filterVal = "";
-        if (cbStatus != null && cbStatus.getSelectedIndex() > 0) {
-            int idx = cbStatus.getSelectedIndex();
-            if (idx == 1) filterVal = "hilang";
-            else if (idx == 2) filterVal = "ditemukan";
-            else if (idx == 3) filterVal = "klaim";
-            else if (idx == 4) filterVal = "dikembalikan";
-        }
+            String actionLabel = sLower.contains("dikembalikan") ? "Ubah Lagi" : "Perbarui Status";
 
-        for (int i = 0; i < barangList.size(); i++) {
-            String[] b = barangList.get(i);
-            String rowText = (b[0] + " " + b[1] + " " + b[2] + " " + b[3] + " " + b[4] + " " + b[5] + " " + b[6]).toLowerCase();
-
-            boolean matchKeyword = keyword.isEmpty() || rowText.contains(keyword);
-            boolean matchFilter = filterVal.isEmpty() || b[6].toLowerCase().contains(filterVal);
-
-            if (matchKeyword && matchFilter) {
-                displayedIndices.add(i);
-
-                String statusColor = "#3498db";
-                String sLower = b[6].toLowerCase();
-                if (sLower.contains("hilang")) statusColor = "#d68910";
-                else if (sLower.contains("ditemukan") || sLower.contains("dikembalikan")) statusColor = "#27ae60";
-                else if (sLower.contains("batal")) statusColor = "#7f8c8d";
-
-                String actionLabel = sLower.contains("dikembalikan") ? "Ubah Lagi" : "Perbarui Status";
-
-                tableModel.addRow(new Object[]{
-                    "<html><b>" + b[1] + "</b><br><font color='#777'>ID: " + b[0] + "</font></html>",
-                    b[2],
-                    "<html>" + b[3] + "<br><font color='#777'>" + b[4] + "</font></html>",
-                    b[5],
-                    "<html><font color='" + statusColor + "'><b>" + b[6] + "</b></font></html>",
-                    "<html><font color='#3498db'><u>" + actionLabel + "</u></font></html>"
-                });
-            }
+            tableModel.addRow(new Object[]{
+                "<html><b>" + b[1] + "</b><br><font color='#777'>ID: " + b[0] + "</font></html>",
+                b[2],
+                "<html>" + b[3] + "<br><font color='#777'>" + b[4] + "</font></html>",
+                b[5],
+                "<html><font color='" + statusColor + "'><b>" + b[6] + "</b></font></html>",
+                "<html><font color='#3498db'><u>" + actionLabel + "</u></font></html>"
+            });
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new AdminUbahStatusFrame().setVisible(true));
+    public void promptUpdateStatusDialog(String[] item, Consumer<String> onStatusUpdated) {
+        JTextField tfTargetBarang = new JTextField(item[1] + " (" + item[0] + ")");
+        tfTargetBarang.setEditable(false);
+        tfTargetBarang.setBackground(new Color(240, 240, 240));
+
+        String[] opsiStatus = {
+            "Hilang (Masih Dicari)",
+            "Ditemukan (Tersimpan di Pos Keamanan/Admin)",
+            "Dalam Proses Verifikasi Klaim",
+            "Telah Dikembalikan (Klaim Berhasil / Selesai)",
+            "Dibatalkan / Kedaluwarsa"
+        };
+        JComboBox<String> cbStatusBaru = new JComboBox<>(opsiStatus);
+
+        String currentStatus = item[6].toLowerCase();
+        if (currentStatus.contains("hilang")) cbStatusBaru.setSelectedIndex(0);
+        else if (currentStatus.contains("ditemukan")) cbStatusBaru.setSelectedIndex(1);
+        else if (currentStatus.contains("klaim")) cbStatusBaru.setSelectedIndex(2);
+        else if (currentStatus.contains("dikembalikan") || currentStatus.contains("selesai")) cbStatusBaru.setSelectedIndex(3);
+        else if (currentStatus.contains("batal")) cbStatusBaru.setSelectedIndex(4);
+
+        JTextField tfPenerima = new JTextField();
+        JTextArea taCatatan = new JTextArea(3, 20);
+        taCatatan.setLineWrap(true);
+        taCatatan.setWrapStyleWord(true);
+        JScrollPane scrollCatatan = new JScrollPane(taCatatan);
+
+        Object[] message = {
+            "Informasi Barang:", tfTargetBarang,
+            "Pilih Status Baru:", cbStatusBaru,
+            "Pihak Penerima / Pengambil (Opsional):", tfPenerima,
+            "Catatan / Berita Acara Penyerahan:", scrollCatatan
+        };
+
+        int option = JOptionPane.showConfirmDialog(
+            this, message, "Formulir Pembaruan Status Barang", JOptionPane.OK_CANCEL_OPTION
+        );
+
+        if (option == JOptionPane.OK_OPTION) {
+            String selectedText = (String) cbStatusBaru.getSelectedItem();
+            String statusBersih = selectedText != null ? selectedText.split("\\(")[0].trim() : "Diperbarui";
+            onStatusUpdated.accept(statusBersih);
+        }
+    }
+
+    public String getSearchKeyword() { return tfSearch.getText().trim(); }
+    public int getSelectedStatusFilterIndex() { return cbStatus.getSelectedIndex(); }
+
+    public void addSearchDocumentListener(DocumentListener l) { tfSearch.getDocument().addDocumentListener(l); }
+    public void addStatusFilterListener(ActionListener l) { cbStatus.addActionListener(l); }
+
+    public void addTableActionClickListener(Consumer<Integer> onRowClicked) {
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                int row = table.rowAtPoint(evt.getPoint());
+                int col = table.columnAtPoint(evt.getPoint());
+                if (col == 5 && row >= 0) {
+                    onRowClicked.accept(row);
+                }
+            }
+        });
+    }
+
+    public void setMenuNavigationHandler(Consumer<Integer> handler) {
+        this.menuNavigationHandler = handler;
     }
 }
