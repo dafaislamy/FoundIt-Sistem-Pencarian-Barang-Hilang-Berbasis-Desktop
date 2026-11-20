@@ -9,9 +9,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * Halaman Profil Pengguna terhubung ke UserService (Database).
- */
 public class ProfilFrame extends JFrame {
 
     private final UserService userService = new UserService();
@@ -106,7 +103,7 @@ public class ProfilFrame extends JFrame {
         valRole = UiKit.label("-", 15, true, UiKit.TEXT);
 
         infoGrid.add(createInfoItem("Nama Lengkap", valNama));
-        infoGrid.add(createInfoItem("NIM / Identitas", valNim));
+        infoGrid.add(createInfoItem("Nomor Identitas", valNim));
         infoGrid.add(createInfoItem("Email", valEmail));
         infoGrid.add(createInfoItem("Nomor Telepon", valNohp));
         infoGrid.add(createInfoItem("Peran Akun", valRole));
@@ -137,16 +134,15 @@ public class ProfilFrame extends JFrame {
                 }
             } catch (ServiceException ignored) {
             }
-            String initial = Session.getInitial();
-            lblPhoto.setText(initial);
+            lblPhoto.setText(Session.getInitial());
             lblNamaProfil.setText(u.getFullName());
-            lblNimProfil.setText(u.getNim() != null ? u.getNim() : u.getEmail());
+            lblNimProfil.setText(u.getIdentityNumber() != null ? u.getIdentityNumber() : u.getEmail());
 
             valNama.setText(u.getFullName());
-            valNim.setText(u.getNim() != null ? u.getNim() : "-");
+            valNim.setText(u.getIdentityNumber() != null ? u.getIdentityNumber() : "-");
             valEmail.setText(u.getEmail());
             valNohp.setText(u.getPhone() != null ? u.getPhone() : "-");
-            valRole.setText(u.getRole() != null ? u.getRole() : "USER");
+            valRole.setText(u.getRole() != null ? u.getRole() : "user");
         } else {
             valNama.setText(Session.getDisplayName());
             valEmail.setText(Session.getDisplayEmail());
@@ -161,14 +157,14 @@ public class ProfilFrame extends JFrame {
         }
 
         JTextField tfNama = new JTextField(u.getFullName());
-        JTextField tfNim = new JTextField(u.getNim() != null ? u.getNim() : "");
+        JTextField tfNim = new JTextField(u.getIdentityNumber() != null ? u.getIdentityNumber() : "");
         JTextField tfEmail = new JTextField(u.getEmail());
         JTextField tfHp = new JTextField(u.getPhone() != null ? u.getPhone() : "");
         JPasswordField tfPass = new JPasswordField();
 
         Object[] fields = {
                 "Nama Lengkap:", tfNama,
-                "NIM:", tfNim,
+                "Nomor Identitas:", tfNim,
                 "Email:", tfEmail,
                 "Nomor Telepon:", tfHp,
                 "Password Baru (kosongkan jika tidak diubah):", tfPass
@@ -178,7 +174,7 @@ public class ProfilFrame extends JFrame {
         if (opt == JOptionPane.OK_OPTION) {
             try {
                 u.setFullName(tfNama.getText().trim());
-                u.setNim(tfNim.getText().trim());
+                u.setIdentityNumber(tfNim.getText().trim());
                 u.setEmail(tfEmail.getText().trim());
                 u.setPhone(tfHp.getText().trim());
                 String newPass = new String(tfPass.getPassword());

@@ -11,9 +11,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Dashboard pengguna terhubung langsung ke ItemService (Database)[cite: 59].
- */
 public class UserDashboardFrame extends JFrame {
 
     private final ItemService itemService = new ItemService();
@@ -42,7 +39,6 @@ public class UserDashboardFrame extends JFrame {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(22, 0, 10, 8));
 
-        // Welcome Banner
         JPanel welcome = UiKit.gradient(UiKit.BLUE, UiKit.BLUE_DARK);
         welcome.setLayout(new BorderLayout());
         welcome.setBorder(new EmptyBorder(22, 26, 22, 26));
@@ -58,7 +54,6 @@ public class UserDashboardFrame extends JFrame {
         body.add(welcome);
         body.add(Box.createVerticalStrut(18));
 
-        // Statistics
         JPanel stats = new JPanel(new GridLayout(1, 3, 15, 0));
         stats.setOpaque(false);
 
@@ -73,7 +68,6 @@ public class UserDashboardFrame extends JFrame {
         body.add(stats);
         body.add(Box.createVerticalStrut(18));
 
-        // Quick Actions
         JPanel actions = UiKit.card();
         actions.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(231, 237, 243)),
@@ -113,7 +107,6 @@ public class UserDashboardFrame extends JFrame {
         body.add(actions);
         body.add(Box.createVerticalStrut(18));
 
-        // Recent Reports
         JPanel recent = UiKit.card();
         recent.setLayout(new BorderLayout(8, 12));
         recent.add(UiKit.header("Laporan Terbaru", "Laporan barang hilang dan ditemukan di lingkungan kampus."), BorderLayout.NORTH);
@@ -140,8 +133,8 @@ public class UserDashboardFrame extends JFrame {
             List<Item> all = itemService.findAll();
             long lost = all.stream().filter(i -> i.getType() == ItemType.LOST).count();
             long found = all.stream().filter(i -> i.getType() == ItemType.FOUND).count();
-            Integer myId = Session.getUser() != null ? Session.getUser().getId() : null;
-            long mine = myId == null ? 0 : all.stream().filter(i -> myId.equals(i.getReportedByUserId())).count();
+            String myId = Session.getUser() != null ? Session.getUser().getId() : null;
+            long mine = myId == null ? 0 : all.stream().filter(i -> myId.equals(i.getReporterId())).count();
 
             lblLostCount.setText(String.valueOf(lost));
             lblFoundCount.setText(String.valueOf(found));
@@ -198,8 +191,8 @@ public class UserDashboardFrame extends JFrame {
         detail.setPreferredSize(new Dimension(122, 40));
         detail.addActionListener(e -> UiKit.info(this,
                 "Barang: " + item.getTitle()
-                        + "\nTipe: " + (isLost ? "Barang Hilang" : "Barang Ditemukan")
-                        + "\nStatus: " + (item.getStatus() != null ? item.getStatus().label() : "-")
+                        + "\nTipe: " + (item.getType() != null ? item.getType().toString() : "-")
+                        + "\nStatus: " + (item.getStatus() != null ? item.getStatus().toString() : "-")
                         + "\nLokasi: " + loc
                         + "\nDeskripsi: " + desc
         ));

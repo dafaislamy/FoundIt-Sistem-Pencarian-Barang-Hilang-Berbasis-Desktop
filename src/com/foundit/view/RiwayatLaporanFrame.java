@@ -11,9 +11,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Halaman riwayat laporan barang pengguna terhubung ke ItemService (Database).
- */
 public class RiwayatLaporanFrame extends JFrame {
 
     private final ItemService itemService = new ItemService();
@@ -101,10 +98,12 @@ public class RiwayatLaporanFrame extends JFrame {
         riwayatListPanel.removeAll();
         try {
             List<Item> all = itemService.findAll();
-            Integer myId = Session.getUser() != null ? Session.getUser().getId() : null;
+            String myId = Session.getUser() != null ? Session.getUser().getId() : null;
+            String myName = Session.getUser() != null ? Session.getUser().getFullName() : null;
             List<Item> mine = myId == null
                     ? all
-                    : all.stream().filter(i -> myId.equals(i.getReportedByUserId())).toList();
+                    : all.stream().filter(i -> myId.equals(i.getReporterId())
+                            || (myName != null && myName.equalsIgnoreCase(i.getFinderName()))).toList();
 
             jumlahLaporanLabel.setText(mine.size() + " laporan ditemukan");
 
@@ -160,8 +159,8 @@ public class RiwayatLaporanFrame extends JFrame {
         top.setOpaque(false);
 
         boolean isLost = item.getType() == ItemType.LOST;
-        String jenisLaporan = isLost ? "Barang Hilang" : "Barang Ditemukan";
-        String statusText = item.getStatus() != null ? item.getStatus().label() : (isLost ? "Hilang" : "Ditemukan");
+        String jenisLaporan = item.getType() != null ? item.getType().toString() : (isLost ? "Hilang" : "Ditemukan");
+        String statusText = item.getStatus() != null ? item.getStatus().toString() : jenisLaporan;
 
         JPanel titleBox = new JPanel();
         titleBox.setOpaque(false);
@@ -198,7 +197,7 @@ public class RiwayatLaporanFrame extends JFrame {
 
         String katVal = item.getCategoryName() != null ? item.getCategoryName() : "Umum";
         String locVal = item.getLocation() != null ? item.getLocation() : "-";
-        String tglVal = item.getIncidentAt() != null ? item.getIncidentAt().toLocalDate().toString() : "-";
+        String tglVal = item.getEventDate() != null ? item.getEventDate().toString() : "-";
 
         detailGrid.add(createDetailItem("Kategori", katVal));
         detailGrid.add(createDetailItem("Lokasi", locVal));

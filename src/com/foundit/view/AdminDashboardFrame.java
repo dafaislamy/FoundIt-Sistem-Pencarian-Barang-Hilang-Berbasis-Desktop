@@ -16,9 +16,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Dashboard Admin terhubung langsung ke UserService, ItemService, dan ClaimService (Database).
- */
 public class AdminDashboardFrame extends JFrame {
 
     private final UserService userService = new UserService();
@@ -146,8 +143,8 @@ public class AdminDashboardFrame extends JFrame {
             List<Claim> claims = claimService.findAll();
 
             long pendingItems = items.stream().filter(i -> i.getStatus() == ItemStatus.PENDING).count();
-            long pendingClaims = claims.stream().filter(c -> c.getStatus() == ClaimStatus.PENDING).count();
-            long approvedClaims = claims.stream().filter(c -> c.getStatus() == ClaimStatus.APPROVED).count();
+            long pendingClaims = claims.stream().filter(c -> c.getStatus() == ClaimStatus.MENUNGGU).count();
+            long approvedClaims = claims.stream().filter(c -> c.getStatus() == ClaimStatus.DISETUJUI).count();
 
             valUsers.setText(String.valueOf(totalUsers));
             valItems.setText(String.valueOf(items.size()));
@@ -160,9 +157,9 @@ public class AdminDashboardFrame extends JFrame {
                     String desc = it.getDescription() != null ? it.getDescription() : "";
                     tableModel.addRow(new Object[]{
                             "<html><b>" + it.getTitle() + "</b><br><font color='#777'>" + desc + "</font></html>",
-                            it.getType() != null ? it.getType().label() : "-",
+                            it.getType() != null ? it.getType().toString() : "-",
                             it.getLocation() != null ? it.getLocation() : "-",
-                            it.getStatus().label(),
+                            it.getStatus().toString(),
                             "<html><font color='#3498db'><u>Tinjau</u></font></html>"
                     });
                 }

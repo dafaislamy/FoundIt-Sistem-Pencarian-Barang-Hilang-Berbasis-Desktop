@@ -11,9 +11,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Halaman untuk memantau status pengajuan klaim barang pengguna terhubung ke ClaimService (Database).
- */
 public class StatusKlaimFrame extends JFrame {
 
     private final ClaimService claimService = new ClaimService();
@@ -101,10 +98,10 @@ public class StatusKlaimFrame extends JFrame {
         klaimListPanel.removeAll();
         try {
             List<Claim> all = claimService.findAll();
-            Integer myId = Session.getUser() != null ? Session.getUser().getId() : null;
+            String myId = Session.getUser() != null ? Session.getUser().getId() : null;
             List<Claim> mine = myId == null
                     ? all
-                    : all.stream().filter(c -> myId.equals(c.getClaimantUserId())).toList();
+                    : all.stream().filter(c -> myId.equals(c.getUserId())).toList();
 
             jumlahKlaimLabel.setText(mine.size() + " pengajuan klaim");
 
@@ -169,16 +166,16 @@ public class StatusKlaimFrame extends JFrame {
         top.add(titleBox, BorderLayout.WEST);
 
         ClaimStatus st = c.getStatus();
-        String statusText = st != null ? st.label() : "Menunggu";
+        String statusText = st != null ? st.toString() : "Menunggu";
         JLabel badge = new JLabel(statusText);
         badge.setFont(new Font("Segoe UI", Font.BOLD, 11));
         badge.setOpaque(true);
         badge.setBorder(new EmptyBorder(6, 12, 6, 12));
 
-        if (st == ClaimStatus.APPROVED) {
+        if (st == ClaimStatus.DISETUJUI) {
             badge.setBackground(new Color(234, 248, 239));
             badge.setForeground(new Color(39, 174, 96));
-        } else if (st == ClaimStatus.REJECTED || st == ClaimStatus.CANCELLED) {
+        } else if (st == ClaimStatus.DITOLAK || st == ClaimStatus.DIBATALKAN) {
             badge.setBackground(new Color(253, 236, 234));
             badge.setForeground(new Color(231, 76, 60));
         } else {
@@ -200,7 +197,7 @@ public class StatusKlaimFrame extends JFrame {
         ));
 
         detailGrid.add(createDetailItem("Bukti Kepemilikan", c.getProofDescription() != null ? c.getProofDescription() : "-"));
-        detailGrid.add(createDetailItem("Keterangan", c.getNotes() != null && !c.getNotes().isBlank() ? c.getNotes() : "-"));
+        detailGrid.add(createDetailItem("Lampiran / Keterangan", c.getAttachment() != null && !c.getAttachment().isBlank() ? c.getAttachment() : "-"));
 
         card.add(detailGrid, BorderLayout.CENTER);
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 195));

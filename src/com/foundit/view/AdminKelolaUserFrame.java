@@ -13,9 +13,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Kelola Pengguna Admin terhubung ke UserService (Database)[cite: 43].
- */
 public class AdminKelolaUserFrame extends JFrame {
 
     private final UserService userService = new UserService();
@@ -55,7 +52,7 @@ public class AdminKelolaUserFrame extends JFrame {
         controlCard.setMaximumSize(new Dimension(2000, 75));
 
         tfSearch = new JTextField();
-        tfSearch.setToolTipText("Cari nama, NIM, atau email...");
+        tfSearch.setToolTipText("Cari nama, nomor identitas, atau email...");
         tfSearch.addActionListener(e -> refreshTable());
 
         JButton btnCari = new JButton("Cari");
@@ -76,7 +73,7 @@ public class AdminKelolaUserFrame extends JFrame {
         controlCard.add(rightButtons, BorderLayout.EAST);
         centerPanel.add(controlCard, BorderLayout.NORTH);
 
-        String[] columns = {"NIM & Nama", "Kontak Email & Telp", "Role", "Aksi"};
+        String[] columns = {"Identitas & Nama", "Kontak Email & Telp", "Role", "Aksi"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -110,11 +107,11 @@ public class AdminKelolaUserFrame extends JFrame {
         try {
             currentUsers = userService.search(tfSearch.getText());
             for (User u : currentUsers) {
-                String nim = u.getNim() != null ? u.getNim() : "-";
+                String idNum = u.getIdentityNumber() != null ? u.getIdentityNumber() : "-";
                 String phone = u.getPhone() != null ? u.getPhone() : "-";
-                String role = u.getRole() != null ? u.getRole() : "USER";
+                String role = u.getRole() != null ? u.getRole() : "user";
                 tableModel.addRow(new Object[]{
-                        "<html><b>" + u.getFullName() + "</b><br><font color='#777'>NIM: " + nim + "</font></html>",
+                        "<html><b>" + u.getFullName() + "</b><br><font color='#777'>ID: " + idNum + "</font></html>",
                         u.getEmail() + "<br><font color='#777'>" + phone + "</font>",
                         role,
                         "<html><font color='#dc3545'><u>Hapus</u></font></html>"
@@ -134,7 +131,7 @@ public class AdminKelolaUserFrame extends JFrame {
 
         Object[] message = {
                 "Nama Lengkap:", namaField,
-                "NIM:", nimField,
+                "Nomor Identitas:", nimField,
                 "Email:", emailField,
                 "No Telepon:", telpField,
                 "Password:", passField
@@ -145,10 +142,10 @@ public class AdminKelolaUserFrame extends JFrame {
             try {
                 User u = new User();
                 u.setFullName(namaField.getText().trim());
-                u.setNim(nimField.getText().trim());
+                u.setIdentityNumber(nimField.getText().trim());
                 u.setEmail(emailField.getText().trim());
                 u.setPhone(telpField.getText().trim());
-                u.setRole("USER");
+                u.setRole("user");
                 userService.save(u, new String(passField.getPassword()));
                 refreshTable();
                 UiKit.info(this, "Pengguna baru berhasil disimpan ke database!");

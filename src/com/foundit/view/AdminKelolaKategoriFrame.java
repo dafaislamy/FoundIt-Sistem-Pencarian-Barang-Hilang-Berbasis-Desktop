@@ -13,16 +13,12 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Kelola Kategori Admin terhubung ke CategoryService (Database)[cite: 41].
- */
 public class AdminKelolaKategoriFrame extends JFrame {
 
     private final CategoryService categoryService = new CategoryService();
     private List<Category> currentCategories = new ArrayList<>();
 
     private JTextField tfNama;
-    private JTextArea taDesc;
     private DefaultTableModel tableModel;
     private JTable table;
 
@@ -65,13 +61,6 @@ public class AdminKelolaKategoriFrame extends JFrame {
         tfNama = new JTextField();
         tfNama.setMaximumSize(new Dimension(2000, 38));
         formCard.add(tfNama);
-        formCard.add(Box.createRigidArea(new Dimension(0, 15)));
-
-        formCard.add(new JLabel("Keterangan / Deskripsi"));
-        formCard.add(Box.createRigidArea(new Dimension(0, 8)));
-        taDesc = new JTextArea(4, 20);
-        taDesc.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        formCard.add(new JScrollPane(taDesc));
         formCard.add(Box.createRigidArea(new Dimension(0, 25)));
 
         JButton btnSimpan = new JButton("Simpan Kategori");
@@ -84,7 +73,7 @@ public class AdminKelolaKategoriFrame extends JFrame {
 
         contentGrid.add(formCard);
 
-        String[] columns = {"Nama Kategori & Deskripsi", "Aksi"};
+        String[] columns = {"ID", "Nama Kategori", "Aksi"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -93,14 +82,14 @@ public class AdminKelolaKategoriFrame extends JFrame {
         };
 
         table = new JTable(tableModel);
-        table.setRowHeight(60);
+        table.setRowHeight(55);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
                 int row = table.rowAtPoint(evt.getPoint());
                 int col = table.columnAtPoint(evt.getPoint());
-                if (col == 1 && row >= 0 && row < currentCategories.size()) {
+                if (col == 2 && row >= 0 && row < currentCategories.size()) {
                     handleRowAction(currentCategories.get(row));
                 }
             }
@@ -118,11 +107,9 @@ public class AdminKelolaKategoriFrame extends JFrame {
         try {
             currentCategories = categoryService.findAll();
             for (Category c : currentCategories) {
-                String desc = (c.getDescription() != null && !c.getDescription().isBlank())
-                        ? c.getDescription()
-                        : "-";
                 tableModel.addRow(new Object[]{
-                        "<html><b>" + c.getName() + "</b><br><font color='#777'>" + desc + "</font></html>",
+                        c.getId(),
+                        "<html><b>" + c.getName() + "</b></html>",
                         "<html><font color='#3498db'><u>Edit | Hapus</u></font></html>"
                 });
             }
@@ -135,10 +122,8 @@ public class AdminKelolaKategoriFrame extends JFrame {
         try {
             Category c = new Category();
             c.setName(tfNama.getText().trim());
-            c.setDescription(taDesc.getText().trim());
             categoryService.save(c);
             tfNama.setText("");
-            taDesc.setText("");
             refreshTable();
             UiKit.info(this, "Kategori berhasil disimpan ke database!");
         } catch (ServiceException ex) {

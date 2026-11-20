@@ -251,7 +251,7 @@ public class LoginFrame extends JFrame {
                 Session.login(admin);
                 UiKit.info(this, "Selamat datang, " + admin.getFullName() + "!");
                 dispose();
-                new MainFrame().setVisible(true);
+                new AdminDashboardFrame().setVisible(true);
             } else {
                 User user = userService.authenticate(email, password);
                 Session.login(user);

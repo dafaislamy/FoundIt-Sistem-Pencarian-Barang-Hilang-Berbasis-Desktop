@@ -14,13 +14,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Form laporan barang hilang/ditemukan terhubung ke ItemService & CategoryService (Database)[cite: 55].
- */
 public abstract class ReportFormFrame extends JFrame {
 
     private final ItemService itemService = new ItemService();
@@ -122,7 +118,7 @@ public abstract class ReportFormFrame extends JFrame {
             JFileChooser chooser = new JFileChooser();
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File f = chooser.getSelectedFile();
-                photoField.setText(f.getAbsolutePath());
+                photoField.setText(f.getName());
             }
         });
 
@@ -204,16 +200,23 @@ public abstract class ReportFormFrame extends JFrame {
             item.setDescription(descriptionArea.getText().trim());
             item.setType(itemType);
             item.setLocation(locationField.getText().trim());
-            item.setIncidentAt(d.atStartOfDay());
-            item.setPhotoPath(photoField.getText().trim().isEmpty() ? null : photoField.getText().trim());
+            item.setEventDate(d);
+            item.setPhoto(photoField.getText().trim().isEmpty() ? null : photoField.getText().trim());
             item.setStatus(ItemStatus.PENDING);
-            item.setReportedByUserId(Session.getUser().getId());
+
+            if (itemType == ItemType.FOUND) {
+                item.setFinderName(Session.getDisplayName());
+                item.setFinderPhone(Session.getUser().getPhone());
+            } else {
+                item.setReporterId(Session.getUser().getId());
+            }
+
             if (selectedCat != null) {
                 item.setCategoryId(selectedCat.getId());
             }
 
             itemService.save(item);
-            UiKit.info(this, "Laporan berhasil dikirim ke database (status: Menunggu Verifikasi).");
+            UiKit.info(this, "Laporan berhasil dikirim ke database (status: Pending).");
             dispose();
             new RiwayatLaporanFrame().setVisible(true);
         } catch (Exception ex) {

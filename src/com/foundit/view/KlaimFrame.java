@@ -12,15 +12,12 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Halaman Form Pengajuan Klaim Barang terhubung ke ClaimService & ItemService (Database).
- */
 public class KlaimFrame extends JFrame {
 
     private final ItemService itemService = new ItemService();
     private final ClaimService claimService = new ClaimService();
 
-    private final Integer preselectedItemId;
+    private final String preselectedItemId;
     private final String prefillTitle;
 
     private JComboBox<ItemOption> itemCombo;
@@ -45,7 +42,7 @@ public class KlaimFrame extends JFrame {
         this(null, "");
     }
 
-    public KlaimFrame(Integer preselectedItemId, String prefillTitle) {
+    public KlaimFrame(String preselectedItemId, String prefillTitle) {
         this.preselectedItemId = preselectedItemId;
         this.prefillTitle = prefillTitle != null ? prefillTitle : "";
 
@@ -123,7 +120,7 @@ public class KlaimFrame extends JFrame {
         JScrollPane scrollKet = new JScrollPane(taKeterangan);
         scrollKet.setPreferredSize(new Dimension(500, 100));
         scrollKet.setBorder(BorderFactory.createLineBorder(new Color(223, 230, 233), 1, true));
-        formPanel.add(UiKit.fieldBlock("Keterangan / Kronologi *", scrollKet));
+        formPanel.add(UiKit.fieldBlock("Keterangan / Lampiran Tambahan (opsional)", scrollKet));
 
         container.add(formPanel, BorderLayout.CENTER);
 
@@ -201,19 +198,19 @@ public class KlaimFrame extends JFrame {
         String ciri = taCiriBarang.getText().trim();
         String keterangan = taKeterangan.getText().trim();
 
-        if (ciri.isEmpty() || keterangan.isEmpty()) {
-            UiKit.warn(this, "Harap lengkapi ciri-ciri barang dan keterangan tambahan!");
+        if (ciri.isEmpty()) {
+            UiKit.warn(this, "Harap lengkapi ciri-ciri barang / bukti kepemilikan!");
             return;
         }
 
         try {
             Claim claim = new Claim();
             claim.setItemId(selected.item.getId());
-            claim.setClaimantUserId(Session.getUser().getId());
+            claim.setUserId(Session.getUser().getId());
             claim.setProofDescription(ciri);
-            claim.setNotes(keterangan);
+            claim.setAttachment(keterangan.isEmpty() ? null : keterangan);
 
-            claimService.submit(claim);
+            claimService.save(claim);
             UiKit.info(this, "Pengajuan klaim berhasil dikirim ke database!");
             dispose();
             new StatusKlaimFrame().setVisible(true);

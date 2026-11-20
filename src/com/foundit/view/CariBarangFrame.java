@@ -14,9 +14,6 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Halaman Cari Barang terhubung langsung ke ItemService & CategoryService (Database)[cite: 47].
- */
 public class CariBarangFrame extends JFrame {
 
     private final ItemService itemService = new ItemService();

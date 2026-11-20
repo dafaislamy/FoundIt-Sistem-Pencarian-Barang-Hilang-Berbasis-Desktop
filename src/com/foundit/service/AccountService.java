@@ -5,45 +5,21 @@ import com.foundit.dao.DAOException;
 import com.foundit.model.Account;
 import com.foundit.util.PasswordUtil;
 
-import java.util.List;
-
 public abstract class AccountService<T extends Account> extends AbstractService<T> {
 
-    private final CrudDAO<T> dao;
-    private final String roleLabel;
-
-    protected AccountService(CrudDAO<T> dao, String roleLabel) {
-        this.dao = dao;
-        this.roleLabel = roleLabel;
+    protected AccountService(CrudDAO<T> dao) {
+        super(dao);
     }
 
     @Override
-    protected CrudDAO<T> dao() {
-        return dao;
+    protected void validate(T entity) throws ValidationException {
+        entity.setFullName(Validator.required("Nama", entity.getFullName(), 100));
+        entity.setEmail(Validator.email(entity.getEmail()));
+        entity.setPhone(Validator.optionalPhone("Nomor telepon", entity.getPhone()));
+        validateExtra(entity);
     }
 
-    public List<T> search(String keyword) throws ServiceException {
-        String q = keyword == null ? "" : keyword.trim().toLowerCase();
-        try {
-            List<T> all = dao.findAll();
-            if (q.isEmpty()) {
-                return all;
-            }
-            return all.stream()
-                    .filter(a -> contains(a.getId(), q)
-                            || contains(a.getFullName(), q)
-                            || contains(a.getEmail(), q)
-                            || contains(a.getPhone(), q)
-                            || matchesExtra(a, q))
-                    .toList();
-        } catch (DAOException e) {
-            throw wrap(e);
-        }
-    }
-
-    protected boolean matchesExtra(T account, String lowerKeyword) {
-        return false;
-    }
+    protected abstract void validateExtra(T entity) throws ValidationException;
 
     public T authenticate(String email, String plainPassword) throws ServiceException {
         String cleanEmail = Validator.email(email);
@@ -60,37 +36,36 @@ public abstract class AccountService<T extends Account> extends AbstractService<
                 }
             }
         } catch (DAOException e) {
-            throw wrap(e);
+            throw new ServiceException(e.getMessage(), e);
         }
-        throw new ValidationException("Email atau password " + roleLabel + " tidak sesuai.");
+        throw new ValidationException("Email atau password tidak sesuai.");
     }
 
     public void save(T account, String plainPassword) throws ServiceException {
         boolean isCreate = account.getId() == null || account.getId().isBlank();
-        account.setFullName(Validator.requireText("Nama", account.getFullName()));
-        account.setEmail(Validator.email(account.getEmail()));
-        account.setPhone(Validator.optionalPhone(account.getPhone()));
-        validateExtra(account);
+        validate(account);
 
         if (isCreate || (plainPassword != null && !plainPassword.isEmpty())) {
-            Validator.password(plainPassword);
-            account.setPasswordHash(PasswordUtil.hash(plainPassword));
+            String pwd = plainPassword == null ? "" : plainPassword.trim();
+            if (pwd.length() < 6) {
+                throw new ValidationException("Password minimal 6 karakter.");
+            }
+            account.setPasswordHash(PasswordUtil.hash(pwd));
         } else {
             T existing = findById(account.getId());
-            account.setPasswordHash(existing.getPasswordHash());
+            if (existing != null) {
+                account.setPasswordHash(existing.getPasswordHash());
+            }
         }
 
         try {
             if (isCreate) {
                 dao.insert(account);
-            } else {
-                dao.update(account);
+            } else if (!dao.update(account)) {
+                throw new ServiceException("Data akun tidak ditemukan atau gagal diperbarui.");
             }
         } catch (DAOException e) {
-            throw wrap(e);
+            throw new ServiceException(e.getMessage(), e);
         }
-    }
-
-    protected void validateExtra(T account) throws ValidationException {
     }
 }
