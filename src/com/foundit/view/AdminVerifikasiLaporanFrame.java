@@ -7,8 +7,12 @@ import com.foundit.service.ServiceException;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -37,7 +41,7 @@ public class AdminVerifikasiLaporanFrame extends JFrame {
 
         mainLayout.add(AdminSidebarPanel.buildTopbar(
                 "Verifikasi Laporan Barang",
-                "Periksa keabsahan laporan yang masuk sebelum dipublikasikan."
+                "Periksa keabsahan laporan yang masih menunggu verifikasi sebelum dipublikasikan."
         ), BorderLayout.NORTH);
 
         String[] columns = {"Barang & Deskripsi", "Lokasi", "Status", "Aksi"};
@@ -49,8 +53,15 @@ public class AdminVerifikasiLaporanFrame extends JFrame {
         };
 
         table = new JTable(tableModel);
-        table.setRowHeight(65);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setFillsViewportHeight(true);
+        table.setIntercellSpacing(new Dimension(10, 6));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.getTableHeader().setBackground(new Color(248, 250, 252));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 36));
+
+        configureColumns();
+
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
@@ -62,28 +73,126 @@ public class AdminVerifikasiLaporanFrame extends JFrame {
             }
         });
 
+        table.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                adjustRowHeights();
+            }
+        });
+
         mainLayout.add(new JScrollPane(table), BorderLayout.CENTER);
         add(mainLayout, BorderLayout.CENTER);
 
         refreshTable();
     }
 
+    private void configureColumns() {
+        TableColumnModel cm = table.getColumnModel();
+        cm.getColumn(0).setPreferredWidth(460);
+        cm.getColumn(1).setPreferredWidth(210);
+        cm.getColumn(2).setPreferredWidth(110);
+        cm.getColumn(3).setPreferredWidth(90);
+
+        cm.getColumn(0).setCellRenderer((tbl, value, isSelected, hasFocus, row, column) -> {
+            JPanel cell = new JPanel();
+            cell.setLayout(new BoxLayout(cell, BoxLayout.Y_AXIS));
+            cell.setBorder(new EmptyBorder(8, 8, 8, 8));
+            cell.setBackground(isSelected ? tbl.getSelectionBackground() : Color.WHITE);
+
+            Item it = row < currentItems.size() ? currentItems.get(row) : null;
+            String title = it != null && it.getTitle() != null ? it.getTitle() : "-";
+            String desc = it != null && it.getDescription() != null ? it.getDescription() : "";
+
+            JLabel lblTitle = new JLabel(title);
+            lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            lblTitle.setForeground(isSelected ? tbl.getSelectionForeground() : new Color(33, 37, 41));
+            lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JTextArea taDesc = new JTextArea(desc);
+            taDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            taDesc.setForeground(isSelected ? tbl.getSelectionForeground() : new Color(119, 119, 119));
+            taDesc.setBackground(isSelected ? tbl.getSelectionBackground() : Color.WHITE);
+            taDesc.setLineWrap(true);
+            taDesc.setWrapStyleWord(true);
+            taDesc.setEditable(false);
+            taDesc.setFocusable(false);
+            taDesc.setBorder(null);
+            taDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            cell.add(lblTitle);
+            cell.add(Box.createRigidArea(new Dimension(0, 3)));
+            cell.add(taDesc);
+            return cell;
+        });
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable tbl, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(tbl, value, isSelected, hasFocus, row, column);
+                setVerticalAlignment(SwingConstants.CENTER);
+                setHorizontalAlignment(column == 3 ? SwingConstants.CENTER : SwingConstants.LEFT);
+                if (!isSelected) {
+                    setBackground(Color.WHITE);
+                }
+                return c;
+            }
+        };
+
+        for (int col = 1; col < cm.getColumnCount(); col++) {
+            cm.getColumn(col).setCellRenderer(centerRenderer);
+        }
+    }
+
+    private void adjustRowHeights() {
+        int colWidth = table.getColumnModel().getColumn(0).getWidth();
+        if (colWidth <= 0) {
+            colWidth = 440;
+        }
+        int textWidth = Math.max(160, colWidth - 20);
+
+        for (int row = 0; row < currentItems.size(); row++) {
+            Item it = currentItems.get(row);
+            String title = it.getTitle() != null ? it.getTitle() : "";
+            String desc = it.getDescription() != null ? it.getDescription() : "";
+
+            JLabel titleProbe = new JLabel(title);
+            titleProbe.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            int titleHeight = titleProbe.getPreferredSize().height;
+
+            JTextArea descProbe = new JTextArea(desc);
+            descProbe.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            descProbe.setLineWrap(true);
+            descProbe.setWrapStyleWord(true);
+            descProbe.setSize(new Dimension(textWidth, Short.MAX_VALUE));
+            int descHeight = descProbe.getPreferredSize().height;
+
+            int neededHeight = Math.max(60, titleHeight + descHeight + 24);
+            table.setRowHeight(row, neededHeight);
+        }
+    }
+
     private void refreshTable() {
         tableModel.setRowCount(0);
+        currentItems = new ArrayList<>();
         try {
-            currentItems = itemService.findAll();
-            for (Item it : currentItems) {
-                String desc = it.getDescription() != null ? it.getDescription() : "";
-                String loc = it.getLocation() != null ? it.getLocation() : "-";
-                String st = it.getStatus() != null ? it.getStatus().toString() : "-";
+            List<Item> allItems = itemService.findAll();
+            for (Item it : allItems) {
+                if (it.getStatus() == ItemStatus.PENDING) {
+                    currentItems.add(it);
+                    String title = it.getTitle() != null ? it.getTitle() : "-";
+                    String loc = it.getLocation() != null ? it.getLocation() : "-";
+                    String st = it.getStatus() != null ? it.getStatus().toString() : "-";
 
-                tableModel.addRow(new Object[]{
-                        "<html><b>" + it.getTitle() + "</b><br><font color='#777'>" + desc + "</font></html>",
-                        loc,
-                        st,
-                        "<html><font color='#3498db'><u>Verifikasi</u></font></html>"
-                });
+                    tableModel.addRow(new Object[]{
+                            title,
+                            loc,
+                            st,
+                            "<html><font color='#3498db'><u>Verifikasi</u></font></html>"
+                    });
+                }
             }
+            SwingUtilities.invokeLater(this::adjustRowHeights);
         } catch (ServiceException ex) {
             UiKit.error(this, ex.getMessage());
         }
