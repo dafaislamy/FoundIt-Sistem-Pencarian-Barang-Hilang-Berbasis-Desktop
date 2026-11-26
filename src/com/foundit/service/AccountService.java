@@ -26,17 +26,24 @@ public abstract class AccountService<T extends Account> extends AbstractService<
         if (plainPassword == null || plainPassword.isEmpty()) {
             throw new ValidationException("Password wajib diisi.");
         }
-        String hashed = PasswordUtil.hash(plainPassword);
+        boolean emailFound = false;
         try {
             for (T acc : dao.findAll()) {
-                if (acc.getEmail() != null
-                        && acc.getEmail().equalsIgnoreCase(cleanEmail)
-                        && hashed.equals(acc.getPasswordHash())) {
-                    return acc;
+                if (acc.getEmail() != null && acc.getEmail().equalsIgnoreCase(cleanEmail)) {
+                    emailFound = true;
+                    if (PasswordUtil.matches(plainPassword, acc.getPasswordHash())) {
+                        return acc;
+                    }
                 }
             }
         } catch (DAOException e) {
-            throw new ServiceException(e.getMessage(), e);
+            System.err.println("[AUTH ERROR] Gagal membaca data akun dari database: " + e.getMessage());
+            throw new ServiceException("Koneksi atau query database gagal: " + e.getMessage(), e);
+        }
+        if (emailFound) {
+            System.err.println("[AUTH FAILED] Password tidak cocok untuk email: " + cleanEmail);
+        } else {
+            System.err.println("[AUTH FAILED] Email tidak ditemukan: " + cleanEmail);
         }
         throw new ValidationException("Email atau password tidak sesuai.");
     }

@@ -1,266 +1,403 @@
 package com.foundit.view;
 
-import com.foundit.model.Admin;
-import com.foundit.model.User;
-import com.foundit.service.AdminService;
+import com.foundit.controller.AuthController;
+import com.foundit.model.Account;
 import com.foundit.service.ServiceException;
-import com.foundit.service.UserService;
-import com.foundit.util.Session;
+import com.foundit.view.components.RoundedButton;
+import com.foundit.view.components.RoundedPanel;
+import com.foundit.view.components.RoundedTextField;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
 
 /**
- * Halaman Login FoundIt terhubung ke UserService & AdminService (Database)[cite: 23, 62].
+ * LoginFrame — Halaman Login FoundIt Desktop.
+ * Desain, pilihan role (User/Admin), toggle password, dan alur login
+ * diselaraskan 1:1 dengan versi web (login.php + js/login.js + css/main.css).
  */
 public class LoginFrame extends JFrame {
 
-    private final UserService userService = new UserService();
-    private final AdminService adminService = new AdminService();
+    private final AuthController authController = new AuthController();
 
-    private JTextField emailField;
-    private JPasswordField passwordField;
-    private JLabel lengthRule, upperRule, symbolRule;
     private String selectedRole = "user";
-    private JButton userChoiceBtn, adminChoiceBtn;
-    private JButton submitBtn, backBtn;
+    private RoleCardPanel userRoleCard;
+    private RoleCardPanel adminRoleCard;
+
+    private RoundedTextField emailField;
+    private JPasswordField passwordField;
+    private JButton togglePasswordBtn;
+    private boolean passwordVisible = false;
+
+    private RoundedButton loginButton;
+    private JPanel registerNotePanel;
+    private JLabel errorLabel;
 
     public LoginFrame() {
-        UiKit.frame(this, "FoundIt | Login", 1160, 740);
-        setContentPane(build());
-        bindEvents();
+        setTitle("Login - FoundIt");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1160, 740);
+        setMinimumSize(new Dimension(960, 640));
+        setLocationRelativeTo(null);
+
+        setContentPane(buildRoot());
+        updateRoleUI();
     }
 
-    private JPanel build() {
+    private JPanel buildRoot() {
         JPanel root = new JPanel(new GridLayout(1, 2));
+        root.add(buildLeftInfoPanel());
+        root.add(buildRightLoginBox());
+        return root;
+    }
 
-        // Panel Kiri
-        JPanel left = UiKit.gradient(UiKit.BLUE_DARK, UiKit.BLUE);
+    /** Bagian Kiri (.login-info): Gradient #1e293b -> #0f172a -> #1e3a8a */
+    private JPanel buildLeftInfoPanel() {
+        JPanel left = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                int w = getWidth(), h = getHeight();
+                LinearGradientPaint gp = new LinearGradientPaint(
+                        0, 0, w, h,
+                        new float[]{0f, 0.45f, 1f},
+                        new Color[]{
+                                ThemeConfig.HERO_GRAD_START,
+                                ThemeConfig.HERO_GRAD_MID,
+                                ThemeConfig.HERO_GRAD_END
+                        }
+                );
+                g2.setPaint(gp);
+                g2.fillRect(0, 0, w, h);
+                g2.dispose();
+            }
+        };
         left.setLayout(new GridBagLayout());
 
-        JPanel welcome = new JPanel();
-        welcome.setOpaque(false);
-        welcome.setLayout(new BoxLayout(welcome, BoxLayout.Y_AXIS));
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBorder(new EmptyBorder(40, 60, 40, 60));
 
-        welcome.add(brand());
-        welcome.add(Box.createVerticalStrut(105));
-        welcome.add(UiKit.label("Selamat Datang", 36, true, Color.WHITE));
-        welcome.add(UiKit.label("Kembali!", 36, true, UiKit.SKY));
-        welcome.add(Box.createVerticalStrut(18));
-        welcome.add(UiKit.label("Masuk untuk melaporkan barang hilang, berbagi", 14, false, Color.WHITE));
-        welcome.add(UiKit.label("informasi barang temuan, dan memantau laporanmu.", 14, false, Color.WHITE));
-        welcome.add(Box.createVerticalStrut(30));
+        // Logo FoundIt
+        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        logoPanel.setOpaque(false);
+        logoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel lblFound = new JLabel("Found");
+        lblFound.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        lblFound.setForeground(Color.WHITE);
+        JLabel lblIt = new JLabel("It");
+        lblIt.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        lblIt.setForeground(ThemeConfig.COLOR_BRAND_LIGHT);
+        logoPanel.add(lblFound);
+        logoPanel.add(lblIt);
 
-        backBtn = UiKit.button("Kembali ke Beranda", new Color(255, 255, 255, 35), Color.WHITE);
-        backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        backBtn.setBorder(new EmptyBorder(10, 18, 10, 18));
-        backBtn.setContentAreaFilled(false);
-        backBtn.setOpaque(false);
-        backBtn.setHorizontalAlignment(SwingConstants.CENTER);
-        backBtn.setForeground(Color.WHITE);
-        backBtn.setFocusPainted(false);
-        backBtn.setPreferredSize(new Dimension(190, 42));
-        backBtn.setMinimumSize(new Dimension(190, 42));
-        backBtn.setMaximumSize(new Dimension(190, 42));
+        content.add(logoPanel);
+        content.add(Box.createVerticalStrut(48));
 
-        welcome.add(backBtn);
-        left.add(welcome);
-        root.add(left);
+        JLabel title1 = new JLabel("<html>Temukan Kembali<br>Barangmu.</html>");
+        title1.setFont(new Font("Segoe UI", Font.BOLD, 42));
+        title1.setForeground(Color.WHITE);
+        title1.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(title1);
+        content.add(Box.createVerticalStrut(18));
 
-        // Panel Kanan
+        JLabel subtitle = new JLabel("<html>Platform barang hilang dan ditemukan<br>untuk seluruh civitas kampus.</html>");
+        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        subtitle.setForeground(ThemeConfig.HERO_TEXT_SUB);
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(subtitle);
+        content.add(Box.createVerticalStrut(32));
+
+        JLabel backHome = new JLabel("← Kembali ke Beranda");
+        backHome.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        backHome.setForeground(new Color(0xBAE6FD));
+        backHome.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        backHome.setAlignmentX(Component.LEFT_ALIGNMENT);
+        backHome.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { backHome.setForeground(Color.WHITE); }
+            @Override public void mouseExited(MouseEvent e) { backHome.setForeground(new Color(0xBAE6FD)); }
+            @Override public void mouseClicked(MouseEvent e) {
+                dispose();
+                new IndexFrame().setVisible(true);
+            }
+        });
+        content.add(backHome);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        left.add(content, gbc);
+        return left;
+    }
+
+    /** Bagian Kanan (.login-box): Form Login */
+    private JPanel buildRightLoginBox() {
         JPanel right = new JPanel(new GridBagLayout());
         right.setBackground(Color.WHITE);
 
         JPanel form = new JPanel();
         form.setOpaque(false);
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBorder(new EmptyBorder(25, 48, 25, 48));
-        form.setPreferredSize(new Dimension(490, 660));
+        form.setBorder(new EmptyBorder(40, 60, 40, 60));
+        form.setPreferredSize(new Dimension(520, 600));
 
-        form.add(UiKit.label("Masuk ke Akun", 29, true, UiKit.TEXT));
+        // Header
+        JLabel headerTitle = new JLabel("Selamat Datang");
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        headerTitle.setForeground(new Color(0x0F172A));
+        headerTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        form.add(headerTitle);
         form.add(Box.createVerticalStrut(6));
-        form.add(UiKit.label("Pilih jenis akun dan masukkan data login.", 13, false, UiKit.MUTED));
+
+        JLabel headerSub = new JLabel("Silakan pilih akun untuk masuk ke FoundIt.");
+        headerSub.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        headerSub.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
+        headerSub.setAlignmentX(Component.LEFT_ALIGNMENT);
+        form.add(headerSub);
         form.add(Box.createVerticalStrut(22));
 
-        JLabel roleCaption = UiKit.label("Masuk sebagai", 13, true, UiKit.TEXT);
-        roleCaption.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(roleCaption);
-        form.add(Box.createVerticalStrut(10));
+        // Alert Error (hidden by default)
+        errorLabel = new JLabel();
+        errorLabel.setOpaque(true);
+        errorLabel.setBackground(ThemeConfig.STATUS_DITOLAK_BG);
+        errorLabel.setForeground(ThemeConfig.STATUS_DITOLAK_FG);
+        errorLabel.setFont(ThemeConfig.FONT_REGULAR);
+        errorLabel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(0xFECACA)),
+                new EmptyBorder(10, 14, 10, 14)
+        ));
+        errorLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        errorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        errorLabel.setVisible(false);
+        form.add(errorLabel);
 
-        JPanel roles = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        roles.setOpaque(false);
-        roles.setAlignmentX(Component.LEFT_ALIGNMENT);
-        roles.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        // Role Selection Cards (.role-selection)
+        JPanel rolePanel = new JPanel(new GridLayout(1, 2, 14, 0));
+        rolePanel.setOpaque(false);
+        rolePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 76));
+        rolePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        userChoiceBtn = roleButton("User", true);
-        adminChoiceBtn = roleButton("Admin", false);
+        userRoleCard = new RoleCardPanel("👤", "User", "Cari dan laporkan barang");
+        adminRoleCard = new RoleCardPanel("🛠️", "Admin", "Kelola FoundIt");
 
-        roles.add(userChoiceBtn);
-        roles.add(adminChoiceBtn);
-        form.add(roles);
+        userRoleCard.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                selectedRole = "user";
+                updateRoleUI();
+            }
+        });
+        adminRoleCard.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                selectedRole = "admin";
+                updateRoleUI();
+            }
+        });
+
+        rolePanel.add(userRoleCard);
+        rolePanel.add(adminRoleCard);
+        form.add(rolePanel);
+        form.add(Box.createVerticalStrut(24));
+
+        // Email Field
+        form.add(createFieldLabel("Email"));
+        form.add(Box.createVerticalStrut(7));
+        emailField = new RoundedTextField(ThemeConfig.INPUT_RADIUS);
+        emailField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        emailField.setPreferredSize(new Dimension(0, 44));
+        emailField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        emailField.addActionListener(e -> handleLogin());
+        form.add(emailField);
+        form.add(Box.createVerticalStrut(18));
+
+        // Password Field + Toggle Eye Button
+        form.add(createFieldLabel("Password"));
+        form.add(Box.createVerticalStrut(7));
+        form.add(buildPasswordGroup());
+        form.add(Box.createVerticalStrut(24));
+
+        // Submit Button
+        loginButton = RoundedButton.createLoginButton("Login sebagai User");
+        loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        loginButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        loginButton.addActionListener(e -> handleLogin());
+        form.add(loginButton);
         form.add(Box.createVerticalStrut(20));
 
-        emailField = UiKit.field();
-        passwordField = UiKit.password();
+        // Register Note (hanya tampil saat role == user)
+        registerNotePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        registerNotePanel.setOpaque(false);
+        registerNotePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        registerNotePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        form.add(UiKit.fieldBlock("Email", emailField));
-        form.add(Box.createVerticalStrut(15));
-        form.add(UiKit.fieldBlock("Password", passwordField));
-        form.add(Box.createVerticalStrut(10));
+        JLabel belumLabel = new JLabel("Belum memiliki akun?");
+        belumLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        belumLabel.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
 
-        JLabel req = UiKit.label("Persyaratan password", 12, true, UiKit.TEXT);
-        req.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(req);
+        JLabel daftarLink = new JLabel("Daftar sebagai User");
+        daftarLink.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        daftarLink.setForeground(ThemeConfig.COLOR_BRAND_DARK);
+        daftarLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        daftarLink.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) {
+                daftarLink.setForeground(ThemeConfig.COLOR_BRAND_DARKER);
+                daftarLink.setText("<html><u>Daftar sebagai User</u></html>");
+            }
+            @Override public void mouseExited(MouseEvent e) {
+                daftarLink.setForeground(ThemeConfig.COLOR_BRAND_DARK);
+                daftarLink.setText("Daftar sebagai User");
+            }
+            @Override public void mouseClicked(MouseEvent e) {
+                dispose();
+                new RegisterFrame().setVisible(true);
+            }
+        });
 
-        lengthRule = rule("Minimal 8 karakter");
-        upperRule = rule("Mengandung huruf kapital (A-Z)");
-        symbolRule = rule("Mengandung simbol (!@#$%^&*)");
-
-        form.add(lengthRule);
-        form.add(upperRule);
-        form.add(symbolRule);
-
-        form.add(Box.createVerticalStrut(20));
-
-        JPanel submitWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        submitWrap.setOpaque(false);
-        submitWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
-        submitWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
-
-        submitBtn = UiKit.button("Masuk ke FoundIt", UiKit.BLUE, Color.WHITE);
-        submitBtn.setPreferredSize(new Dimension(300, 52));
-        submitBtn.setMinimumSize(new Dimension(300, 52));
-        submitBtn.setMaximumSize(new Dimension(300, 52));
-
-        submitWrap.add(submitBtn);
-        form.add(submitWrap);
+        registerNotePanel.add(belumLabel);
+        registerNotePanel.add(daftarLink);
+        form.add(registerNotePanel);
 
         right.add(form);
-        root.add(right);
-
-        return root;
+        return right;
     }
 
-    private void bindEvents() {
-        userChoiceBtn.addActionListener(e -> selectRole("user"));
-        adminChoiceBtn.addActionListener(e -> selectRole("admin"));
+    private JPanel buildPasswordGroup() {
+        RoundedPanel wrapper = new RoundedPanel(ThemeConfig.INPUT_RADIUS, ThemeConfig.INPUT_BORDER, 1, false);
+        wrapper.setBackground(Color.WHITE);
+        wrapper.setLayout(new BorderLayout());
+        wrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        wrapper.setPreferredSize(new Dimension(0, 44));
+        wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        passwordField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                updatePasswordRules();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                updatePasswordRules();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                updatePasswordRules();
-            }
-        });
-
-        backBtn.addActionListener(e -> {
-            dispose();
-            new IndexFrame().setVisible(true);
-        });
-
-        submitBtn.addActionListener(e -> handleLogin());
-        emailField.addActionListener(e -> handleLogin());
+        passwordField = new JPasswordField();
+        passwordField.setBorder(new EmptyBorder(10, 13, 10, 6));
+        passwordField.setFont(ThemeConfig.FONT_MEDIUM);
+        passwordField.setForeground(ThemeConfig.COLOR_TEXT_PRIMARY);
+        passwordField.setOpaque(false);
         passwordField.addActionListener(e -> handleLogin());
+
+        togglePasswordBtn = new JButton("👁");
+        togglePasswordBtn.setFocusPainted(false);
+        togglePasswordBtn.setBorderPainted(false);
+        togglePasswordBtn.setContentAreaFilled(false);
+        togglePasswordBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        togglePasswordBtn.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
+        togglePasswordBtn.setPreferredSize(new Dimension(44, 44));
+        togglePasswordBtn.setToolTipText("Tampilkan password");
+        togglePasswordBtn.addActionListener(e -> togglePasswordVisibility());
+
+        wrapper.add(passwordField, BorderLayout.CENTER);
+        wrapper.add(togglePasswordBtn, BorderLayout.EAST);
+        return wrapper;
     }
 
-    private void updatePasswordRules() {
-        String pw = new String(passwordField.getPassword());
-        setRule(lengthRule, "Minimal 8 karakter", pw.length() >= 8);
-        setRule(upperRule, "Mengandung huruf kapital (A-Z)", pw.matches(".*[A-Z].*"));
-        setRule(symbolRule, "Mengandung simbol (!@#$%^&*)", pw.matches(".*[!@#$%^&*].*"));
+    private void togglePasswordVisibility() {
+        passwordVisible = !passwordVisible;
+        passwordField.setEchoChar(passwordVisible ? (char) 0 : '•');
+        togglePasswordBtn.setText(passwordVisible ? "🙈" : "👁");
+        togglePasswordBtn.setToolTipText(passwordVisible ? "Sembunyikan password" : "Tampilkan password");
     }
 
-    private void setRule(JLabel label, String text, boolean ok) {
-        label.setText((ok ? "✓  " : "✕  ") + text);
-        label.setForeground(ok ? new Color(39, 174, 96) : new Color(190, 90, 90));
+    private JLabel createFieldLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lbl.setForeground(ThemeConfig.INPUT_LABEL_FG);
+        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return lbl;
     }
 
-    private void selectRole(String role) {
-        this.selectedRole = role;
-        styleChoice(userChoiceBtn, "user".equals(role));
-        styleChoice(adminChoiceBtn, "admin".equals(role));
-    }
-
-    private void styleChoice(JButton b, boolean selected) {
-        b.setForeground(selected ? Color.WHITE : UiKit.TEXT);
-        b.putClientProperty("selected", selected);
-        b.repaint();
-    }
-
-    private JButton roleButton(String text, boolean selected) {
-        JButton b = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                boolean on = Boolean.TRUE.equals(getClientProperty("selected"));
-                Color bg = on ? UiKit.BLUE_DARK : UiKit.PALE;
-                g2.setColor(getModel().isPressed() ? bg.darker() : bg);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 24, 24);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-
-        b.putClientProperty("selected", selected);
-        b.setFont(UiKit.MED);
-        b.setForeground(selected ? Color.WHITE : UiKit.TEXT);
-        b.setOpaque(false);
-        b.setContentAreaFilled(false);
-        b.setBorder(new EmptyBorder(10, 15, 10, 15));
-        b.setFocusPainted(false);
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        b.setPreferredSize(new Dimension(text.equals("User") ? 78 : 84, 38));
-        return b;
-    }
-
-    private JPanel brand() {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        p.setOpaque(false);
-        p.add(UiKit.label("Found", 29, true, Color.WHITE));
-        p.add(UiKit.label("It", 29, true, UiKit.SKY));
-        return p;
-    }
-
-    private JLabel rule(String s) {
-        JLabel l = UiKit.label("✕  " + s, 11, false, new Color(160, 80, 80));
-        l.setBorder(new EmptyBorder(2, 0, 2, 0));
-        l.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return l;
+    private void updateRoleUI() {
+        boolean isUser = "user".equals(selectedRole);
+        userRoleCard.setActive(isUser);
+        adminRoleCard.setActive(!isUser);
+        loginButton.setText(isUser ? "Login sebagai User" : "Login sebagai Admin");
+        registerNotePanel.setVisible(isUser);
+        errorLabel.setVisible(false);
     }
 
     private void handleLogin() {
-        String email = emailField.getText().trim();
+        errorLabel.setVisible(false);
+        String email = emailField.getText();
         String password = new String(passwordField.getPassword());
 
         try {
-            if ("admin".equals(selectedRole)) {
-                Admin admin = adminService.authenticate(email, password);
-                Session.login(admin);
-                UiKit.info(this, "Selamat datang, " + admin.getFullName() + "!");
-                dispose();
-                new AdminDashboardFrame().setVisible(true);
-            } else {
-                User user = userService.authenticate(email, password);
-                Session.login(user);
-                UiKit.info(this, "Selamat datang, " + user.getFullName() + "!");
-                dispose();
-                new UserDashboardFrame().setVisible(true);
-            }
+            Account account = authController.login(email, password, selectedRole);
+            dispose();
+            new MainAppFrame(account).setVisible(true);
         } catch (ServiceException ex) {
-            UiKit.warn(this, ex.getMessage());
+            errorLabel.setText(ex.getMessage());
+            errorLabel.setVisible(true);
+        }
+    }
+
+    // ===== Inner class: RoleCardPanel (.role-card) =====
+    private static class RoleCardPanel extends JPanel {
+        private boolean active = false;
+        private boolean hovered = false;
+
+        RoleCardPanel(String icon, String title, String desc) {
+            setOpaque(false);
+            setLayout(new BorderLayout(12, 0));
+            setBorder(new EmptyBorder(12, 14, 12, 14));
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            JLabel iconLbl = new JLabel(icon);
+            iconLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
+            add(iconLbl, BorderLayout.WEST);
+
+            JPanel textPanel = new JPanel();
+            textPanel.setOpaque(false);
+            textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+
+            JLabel t = new JLabel(title);
+            t.setFont(new Font("Segoe UI", Font.BOLD, 15));
+            t.setForeground(new Color(0x0F172A));
+
+            JLabel d = new JLabel(desc);
+            d.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+            d.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
+
+            textPanel.add(t);
+            textPanel.add(Box.createVerticalStrut(2));
+            textPanel.add(d);
+            add(textPanel, BorderLayout.CENTER);
+
+            addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) { hovered = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e) { hovered = false; repaint(); }
+            });
+        }
+
+        void setActive(boolean active) {
+            this.active = active;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            Color bg = active ? new Color(0xF0F9FF) : Color.WHITE;
+            Color border = active ? ThemeConfig.COLOR_BRAND_DARK
+                    : (hovered ? ThemeConfig.COLOR_BRAND_DARK : new Color(0xE2E8F0));
+            float stroke = active ? 2.0f : 1.5f;
+
+            g2.setColor(bg);
+            g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 12, 12));
+
+            g2.setColor(border);
+            g2.setStroke(new BasicStroke(stroke));
+            g2.draw(new RoundRectangle2D.Double(stroke / 2, stroke / 2,
+                    getWidth() - stroke, getHeight() - stroke, 12, 12));
+
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 }
