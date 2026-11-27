@@ -112,13 +112,13 @@ public class AdminKelolaKategoriPanel extends JPanel {
                 tableModel.addRow(new Object[]{c.getId(), c.getName()});
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat kategori: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat kategori: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void addCategory() {
-        String name = JOptionPane.showInputDialog(this, "Masukkan nama kategori baru:", "Tambah Kategori", JOptionPane.PLAIN_MESSAGE);
+        String name = JOptionPane.showInputDialog(ThemeConfig.windowOf(this), "Masukkan nama kategori baru:", "Tambah Kategori", JOptionPane.PLAIN_MESSAGE);
         if (name == null) return;
         try {
             Category c = new Category();
@@ -126,18 +126,18 @@ public class AdminKelolaKategoriPanel extends JPanel {
             controller.saveCategory(c);
             loadCategories();
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void editCategory() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= categories.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih kategori yang ingin diubah.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih kategori yang ingin diubah.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         Category c = categories.get(row);
-        String newName = (String) JOptionPane.showInputDialog(this, "Nama kategori baru:", "Ubah Kategori",
+        String newName = (String) JOptionPane.showInputDialog(ThemeConfig.windowOf(this), "Nama kategori baru:", "Ubah Kategori",
                 JOptionPane.PLAIN_MESSAGE, null, null, c.getName());
         if (newName == null) return;
         try {
@@ -145,25 +145,25 @@ public class AdminKelolaKategoriPanel extends JPanel {
             controller.saveCategory(c);
             loadCategories();
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void deleteCategory() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= categories.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih kategori yang ingin dihapus.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih kategori yang ingin dihapus.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         Category c = categories.get(row);
-        if (JOptionPane.showConfirmDialog(this,
+        if (JOptionPane.showConfirmDialog(ThemeConfig.windowOf(this),
                 "Yakin ingin menghapus kategori \"" + c.getName() + "\"?",
                 "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             try {
                 controller.deleteCategory(c.getId());
                 loadCategories();
             } catch (ServiceException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Gagal Menghapus", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Gagal Menghapus", JOptionPane.WARNING_MESSAGE);
             }
         }
     }

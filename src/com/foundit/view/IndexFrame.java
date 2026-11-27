@@ -25,11 +25,11 @@ public class IndexFrame extends JFrame {
 
         JPanel brand = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         brand.setOpaque(false);
-        brand.add(UiKit.label("Found", 30, true, UiKit.BLUE_DARK));
-        brand.add(UiKit.label("It", 30, true, UiKit.BLUE));
+        brand.add(UiKit.label("Found", 30, true, ThemeConfig.HERO_GRAD_START));
+        brand.add(UiKit.label("It", 30, true, new Color(0x0EA5E9)));
         nav.add(brand, BorderLayout.WEST);
 
-        JButton loginBtn = UiKit.button("Masuk", UiKit.BLUE, Color.WHITE);
+        JButton loginBtn = UiKit.button("Masuk", ThemeConfig.COLOR_BRAND_DARK, Color.WHITE);
         loginBtn.setPreferredSize(new Dimension(120, 42));
         loginBtn.addActionListener(e -> openLogin());
         nav.add(loginBtn, BorderLayout.EAST);
@@ -38,10 +38,10 @@ public class IndexFrame extends JFrame {
 
         // Main Content
         JPanel center = new JPanel(new BorderLayout());
-        center.setBackground(UiKit.BG);
+        center.setBackground(ThemeConfig.BG_PAGE);
 
-        // Hero Section
-        JPanel hero = UiKit.gradient(UiKit.BLUE, UiKit.BLUE_DARK);
+        // Hero Section (seragam dengan panel kiri LoginFrame)
+        JPanel hero = ThemeConfig.createHeroGradientPanel();
         hero.setLayout(new GridBagLayout());
 
         GridBagConstraints c = new GridBagConstraints();
@@ -52,23 +52,23 @@ public class IndexFrame extends JFrame {
         c.gridy = 0;
         hero.add(UiKit.label(
                 "TEMUKAN  •  LAPORKAN  •  KEMBALI",
-                13, true, new Color(220, 243, 255)
+                13, true, ThemeConfig.COLOR_BRAND_LIGHT
         ), c);
 
         c.gridy++;
         hero.add(UiKit.label("Barang Hilang?", 43, true, Color.WHITE), c);
 
         c.gridy++;
-        hero.add(UiKit.label("Temukan Kembali bersama FoundIt.", 32, true, UiKit.SKY), c);
+        hero.add(UiKit.label("Temukan Kembali bersama FoundIt.", 32, true, ThemeConfig.COLOR_BRAND_LIGHT), c);
 
         c.gridy++;
         hero.add(UiKit.label(
                 "Ruang informasi kehilangan dan penemuan barang di lingkungan kampus.",
-                15, false, new Color(238, 247, 253)
+                15, false, ThemeConfig.HERO_TEXT_SUB
         ), c);
 
         c.gridy++;
-        JButton startBtn = UiKit.button("Mulai Sekarang", UiKit.GREEN, Color.WHITE);
+        JButton startBtn = UiKit.button("Mulai Sekarang", ThemeConfig.COLOR_BRAND_DARK, Color.WHITE);
         startBtn.setPreferredSize(new Dimension(205, 50));
         startBtn.setMinimumSize(new Dimension(205, 50));
         startBtn.setMaximumSize(new Dimension(205, 50));
@@ -102,7 +102,7 @@ public class IndexFrame extends JFrame {
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setBorder(new EmptyBorder(20, 22, 20, 22));
 
-        JLabel pict = new JLabel(UiKit.icon(icon, UiKit.BLUE, 34));
+        JLabel pict = new JLabel(UiKit.icon(icon, ThemeConfig.COLOR_BRAND_DARK, 34));
         p.add(pict);
         p.add(Box.createVerticalStrut(8));
 

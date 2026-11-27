@@ -145,9 +145,9 @@ public class ProfilPanel extends JPanel {
             Session.login(u);
             refreshData();
             if (onProfileUpdated != null) onProfileUpdated.run();
-            JOptionPane.showMessageDialog(this, "Profil berhasil diperbarui!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Profil berhasil diperbarui!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Gagal Memperbarui Profil", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Gagal Memperbarui Profil", JOptionPane.WARNING_MESSAGE);
         }
     }
 

@@ -50,7 +50,40 @@ public class UserDashboardPanel extends JPanel {
         JPanel body = new JPanel();
         body.setOpaque(false);
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-        body.setBorder(new EmptyBorder(0, 0, 16, 8));
+        body.setBorder(new EmptyBorder(4, 4, 20, 12));
+
+        // 0. WELCOME BANNER
+        RoundedPanel welcome = RoundedPanel.createWelcomeCard();
+        welcome.setLayout(new BorderLayout(20, 0));
+        welcome.setBorder(new EmptyBorder(24, 28, 24, 28));
+        welcome.setMaximumSize(new Dimension(Integer.MAX_VALUE, 136));
+        welcome.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel wt = new JPanel();
+        wt.setOpaque(false);
+        wt.setLayout(new BoxLayout(wt, BoxLayout.Y_AXIS));
+
+        JLabel halo = new JLabel("Halo, " + Session.getDisplayName() + "!");
+        halo.setFont(ThemeConfig.FONT_SMALL);
+        halo.setForeground(ThemeConfig.WELCOME_TEXT_SUB);
+
+        JLabel wTitle = new JLabel("Temukan & Laporkan Barang Kampus");
+        wTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        wTitle.setForeground(Color.WHITE);
+
+        JLabel wSub = new JLabel("Bantu barang yang kamu temukan kembali ke pemiliknya, atau cari barangmu yang hilang melalui laporan kampus.");
+        wSub.setFont(ThemeConfig.FONT_REGULAR);
+        wSub.setForeground(ThemeConfig.WELCOME_TEXT_SUB);
+
+        wt.add(halo);
+        wt.add(Box.createVerticalStrut(4));
+        wt.add(wTitle);
+        wt.add(Box.createVerticalStrut(6));
+        wt.add(wSub);
+        welcome.add(wt, BorderLayout.CENTER);
+
+        body.add(welcome);
+        body.add(Box.createVerticalStrut(24));
 
         // 1. STATISTIK (4 KARTU)
         JPanel statsGrid = new JPanel(new GridLayout(1, 4, 16, 0));
@@ -69,7 +102,7 @@ public class UserDashboardPanel extends JPanel {
         statsGrid.add(buildStatCard("Dikembalikan", valDikembalikan, ThemeConfig.BG_STAT_BLUE, ThemeConfig.FG_STAT_BLUE, "✅"));
 
         body.add(statsGrid);
-        body.add(Box.createVerticalStrut(22));
+        body.add(Box.createVerticalStrut(26));
 
         // 2. AKSI CEPAT
         RoundedPanel aksiCard = new RoundedPanel(ThemeConfig.CARD_RADIUS, ThemeConfig.BORDER_CARD, 1, false);
@@ -112,12 +145,13 @@ public class UserDashboardPanel extends JPanel {
         aksiCard.add(btnRow);
 
         body.add(aksiCard);
-        body.add(Box.createVerticalStrut(24));
+        body.add(Box.createVerticalStrut(26));
 
         // 3. HEADER LAPORAN TERBARU
         JPanel recentHeader = new JPanel(new BorderLayout());
         recentHeader.setOpaque(false);
-        recentHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        recentHeader.setBorder(new EmptyBorder(0, 14, 0, 4));
+        recentHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
         recentHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel rhLeft = new JPanel();
@@ -130,7 +164,7 @@ public class UserDashboardPanel extends JPanel {
         rhSub.setFont(ThemeConfig.FONT_REGULAR);
         rhSub.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
         rhLeft.add(rhTitle);
-        rhLeft.add(Box.createVerticalStrut(2));
+        rhLeft.add(Box.createVerticalStrut(5));
         rhLeft.add(rhSub);
 
         JLabel viewAll = new JLabel("Lihat Semua →");
@@ -144,7 +178,7 @@ public class UserDashboardPanel extends JPanel {
         recentHeader.add(rhLeft, BorderLayout.WEST);
         recentHeader.add(viewAll, BorderLayout.EAST);
         body.add(recentHeader);
-        body.add(Box.createVerticalStrut(12));
+        body.add(Box.createVerticalStrut(14));
 
         // 4. LIST LAPORAN TERBARU
         RoundedPanel listContainer = new RoundedPanel(ThemeConfig.CARD_RADIUS, ThemeConfig.BORDER_CARD, 1, false);

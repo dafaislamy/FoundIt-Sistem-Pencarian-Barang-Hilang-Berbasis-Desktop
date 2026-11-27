@@ -41,6 +41,7 @@ public class AdminDashboardFrame extends JFrame {
         setSize(1150, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(this);
         setLayout(new BorderLayout());
 
         add(new AdminSidebarPanel(this, AdminSidebarPanel.Menu.DASHBOARD), BorderLayout.WEST);
@@ -64,7 +65,7 @@ public class AdminDashboardFrame extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                g2d.setPaint(new GradientPaint(0, 0, new Color(52, 152, 219), getWidth(), getHeight(), new Color(44, 62, 80)));
+                g2d.setPaint(new GradientPaint(0, 0, ThemeConfig.HERO_GRAD_START, getWidth(), getHeight(), ThemeConfig.HERO_GRAD_END));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
@@ -118,12 +119,13 @@ public class AdminDashboardFrame extends JFrame {
         statsPanel.add(createStatCard("Klaim Selesai", valCompleted, IconType.COMPLETED));
 
         mainContent.add(statsPanel);
-        mainContent.add(Box.createRigidArea(new Dimension(0, 25)));
+        mainContent.add(Box.createRigidArea(new Dimension(0, 26)));
 
         JPanel tableHeaderWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         tableHeaderWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
         tableHeaderWrap.setOpaque(false);
-        tableHeaderWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        tableHeaderWrap.setBorder(new EmptyBorder(0, 14, 0, 0));
+        tableHeaderWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
 
         JLabel tableLabel = new JLabel("Laporan Menunggu Verifikasi");
         tableLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -131,7 +133,7 @@ public class AdminDashboardFrame extends JFrame {
         tableHeaderWrap.add(tableLabel);
 
         mainContent.add(tableHeaderWrap);
-        mainContent.add(Box.createRigidArea(new Dimension(0, 12)));
+        mainContent.add(Box.createRigidArea(new Dimension(0, 14)));
 
         String[] columns = {"Barang", "Tipe", "Lokasi", "Status", "Aksi"};
         tableModel = new DefaultTableModel(columns, 0) {

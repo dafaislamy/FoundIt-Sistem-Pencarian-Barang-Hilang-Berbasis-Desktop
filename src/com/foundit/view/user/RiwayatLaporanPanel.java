@@ -137,7 +137,7 @@ public class RiwayatLaporanPanel extends JPanel {
                 });
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat riwayat laporan: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat riwayat laporan: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -145,7 +145,7 @@ public class RiwayatLaporanPanel extends JPanel {
     private void showSelectedDetail() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= myReports.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih laporan terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih laporan terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         Item it = myReports.get(row);
@@ -160,31 +160,31 @@ public class RiwayatLaporanPanel extends JPanel {
                 it.getStatus().getDb(),
                 it.getDescription()
         );
-        JOptionPane.showMessageDialog(this, msg, "Detail Laporan " + it.getId(), JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), msg, "Detail Laporan " + it.getId(), JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void deleteSelectedReport() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= myReports.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih laporan yang ingin dihapus.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih laporan yang ingin dihapus.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         Item it = myReports.get(row);
         if (it.getStatus() != ItemStatus.PENDING) {
-            JOptionPane.showMessageDialog(this, "Hanya laporan berstatus Pending yang dapat dihapus.",
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Hanya laporan berstatus Pending yang dapat dihapus.",
                     "Tidak Dapat Dihapus", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(this,
+        int confirm = JOptionPane.showConfirmDialog(ThemeConfig.windowOf(this),
                 "Yakin ingin menghapus laporan \"" + it.getTitle() + "\"?",
                 "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 controller.deleteUserReport(it.getId());
-                JOptionPane.showMessageDialog(this, "Laporan berhasil dihapus.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Laporan berhasil dihapus.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
                 refreshData();
             } catch (ServiceException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

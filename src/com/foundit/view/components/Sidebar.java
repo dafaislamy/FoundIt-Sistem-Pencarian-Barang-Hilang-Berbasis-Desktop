@@ -44,9 +44,11 @@ public class Sidebar extends JPanel {
                 0, ThemeConfig.SIDEBAR_PADDING));
 
         // ===== LOGO =====
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         logoPanel.setOpaque(false);
-        logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 0));
+        logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 24, 0));
+        logoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        logoPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
 
         JLabel logoFound = new JLabel("Found");
         logoFound.setFont(ThemeConfig.FONT_LOGO);
@@ -64,10 +66,11 @@ public class Sidebar extends JPanel {
         JPanel navPanel = new JPanel();
         navPanel.setOpaque(false);
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
+        navPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         navPanel.putClientProperty("navPanel", true);
         topPanel.add(navPanel);
 
-        add(topPanel, BorderLayout.CENTER);
+        add(topPanel, BorderLayout.NORTH);
 
         // ===== LOGOUT BUTTON =====
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -87,7 +90,7 @@ public class Sidebar extends JPanel {
     public void addMenuItem(String label, String key, boolean isActive) {
         SidebarItem item = new SidebarItem(label, key);
 
-        JPanel topPanel = (JPanel) ((BorderLayout) getLayout()).getLayoutComponent(BorderLayout.CENTER);
+        JPanel topPanel = (JPanel) ((BorderLayout) getLayout()).getLayoutComponent(BorderLayout.NORTH);
         // Cari navPanel di dalam topPanel
         for (Component comp : topPanel.getComponents()) {
             if (comp instanceof JPanel navPanel && Boolean.TRUE.equals(navPanel.getClientProperty("navPanel"))) {
@@ -122,7 +125,7 @@ public class Sidebar extends JPanel {
         logoutItem.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 int result = JOptionPane.showConfirmDialog(
-                        Sidebar.this,
+                        SwingUtilities.getWindowAncestor(Sidebar.this),
                         "Apakah Anda yakin ingin keluar?",
                         "Konfirmasi Logout",
                         JOptionPane.YES_NO_OPTION);

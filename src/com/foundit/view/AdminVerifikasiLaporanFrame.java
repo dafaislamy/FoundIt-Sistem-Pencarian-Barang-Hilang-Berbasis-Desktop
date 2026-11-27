@@ -31,6 +31,7 @@ public class AdminVerifikasiLaporanFrame extends JFrame {
         setSize(1150, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(this);
         setLayout(new BorderLayout());
 
         add(new AdminSidebarPanel(this, AdminSidebarPanel.Menu.VERIFIKASI_LAPORAN), BorderLayout.WEST);

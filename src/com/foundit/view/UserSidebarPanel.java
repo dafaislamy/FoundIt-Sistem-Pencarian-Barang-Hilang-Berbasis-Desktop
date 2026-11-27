@@ -37,7 +37,9 @@ public class UserSidebarPanel extends JPanel {
 
         JPanel logo = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         logo.setOpaque(false);
-        logo.setBorder(new EmptyBorder(27, 25, 32, 0));
+        logo.setBorder(new EmptyBorder(24, 22, 18, 0));
+        logo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        logo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 76));
         logo.add(UiKit.label("Found", 27, true, UiKit.BLUE_DARK));
         logo.add(UiKit.label("It", 27, true, UiKit.BLUE));
         add(logo);
@@ -76,6 +78,7 @@ public class UserSidebarPanel extends JPanel {
 
     private JPanel createActionRow(String text, String iconKind, boolean active, Runnable action) {
         JPanel p = new JPanel(new BorderLayout(10, 0));
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
         p.setMaximumSize(new Dimension(220, 44));
         p.setBorder(new EmptyBorder(10, 18, 10, 10));
         p.setBackground(active ? UiKit.PALE : Color.WHITE);

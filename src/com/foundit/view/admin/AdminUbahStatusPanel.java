@@ -150,7 +150,7 @@ public class AdminUbahStatusPanel extends JPanel {
                 });
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data barang: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat data barang: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -158,18 +158,18 @@ public class AdminUbahStatusPanel extends JPanel {
     private void changeSelectedStatus(ItemStatus target) {
         int row = table.getSelectedRow();
         if (row < 0 || row >= itemList.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih barang terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih barang terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         Item it = itemList.get(row);
         try {
             controller.changeItemStatus(it.getId(), target);
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this),
                     "Status barang \"" + it.getTitle() + "\" berhasil diubah menjadi " + target.getDb() + ".",
                     "Status Diperbarui", JOptionPane.INFORMATION_MESSAGE);
             loadItems();
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Perubahan Status Ditolak", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Perubahan Status Ditolak", JOptionPane.WARNING_MESSAGE);
         }
     }
 

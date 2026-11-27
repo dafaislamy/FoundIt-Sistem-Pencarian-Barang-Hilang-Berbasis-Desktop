@@ -20,6 +20,8 @@ public class RoundedPanel extends JPanel {
     private Color borderColor;
     private int   borderThickness;
     private boolean dropShadow;
+    private Color gradientStart;
+    private Color gradientEnd;
 
     /** Panel putih bertepi melengkung standar (12px), border abu #e5e7eb */
     public RoundedPanel() {
@@ -54,8 +56,12 @@ public class RoundedPanel extends JPanel {
             g2.fill(new RoundRectangle2D.Double(shadow, shadow + 2, w, h, arcRadius, arcRadius));
         }
 
-        // Latar belakang
-        g2.setColor(getBackground());
+        // Latar belakang (gradien jika diatur, atau solid background)
+        if (gradientStart != null && gradientEnd != null) {
+            g2.setPaint(new GradientPaint(0, 0, gradientStart, w, h, gradientEnd));
+        } else {
+            g2.setColor(getBackground());
+        }
         g2.fill(new RoundRectangle2D.Double(0, 0, w, h, arcRadius, arcRadius));
 
         // Border
@@ -95,21 +101,11 @@ public class RoundedPanel extends JPanel {
         return p;
     }
 
-    /** Factory: welcome card gradient biru */
+    /** Factory: welcome card gradient biru gelap/navy */
     public static RoundedPanel createWelcomeCard() {
-        return new RoundedPanel(14, null, 0, false) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(
-                        0, 0, ThemeConfig.WELCOME_GRAD_START,
-                        getWidth(), getHeight(), ThemeConfig.WELCOME_GRAD_END);
-                g2.setPaint(gp);
-                g2.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 14, 14));
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
+        RoundedPanel p = new RoundedPanel(14, null, 0, false);
+        p.gradientStart = ThemeConfig.WELCOME_GRAD_START;
+        p.gradientEnd = ThemeConfig.WELCOME_GRAD_END;
+        return p;
     }
 }

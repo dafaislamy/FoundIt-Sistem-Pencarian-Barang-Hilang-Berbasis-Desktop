@@ -134,7 +134,7 @@ public class StatusKlaimPanel extends JPanel {
                 });
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat status klaim: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat status klaim: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -142,7 +142,7 @@ public class StatusKlaimPanel extends JPanel {
     private void showSelectedDetail() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= currentClaims.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih baris klaim terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih baris klaim terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         Claim c = currentClaims.get(row);
@@ -154,31 +154,31 @@ public class StatusKlaimPanel extends JPanel {
                 c.getProofDescription(),
                 c.getAdminName() != null ? c.getAdminName() : "Belum diproses"
         );
-        JOptionPane.showMessageDialog(this, msg, "Detail Klaim " + c.getId(), JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), msg, "Detail Klaim " + c.getId(), JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void cancelSelectedClaim() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= currentClaims.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih klaim yang ingin dibatalkan.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih klaim yang ingin dibatalkan.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         Claim c = currentClaims.get(row);
         if (c.getStatus() != ClaimStatus.MENUNGGU) {
-            JOptionPane.showMessageDialog(this, "Hanya klaim berstatus Menunggu yang dapat dibatalkan.",
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Hanya klaim berstatus Menunggu yang dapat dibatalkan.",
                     "Tidak Dapat Dibatalkan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(this,
+        int confirm = JOptionPane.showConfirmDialog(ThemeConfig.windowOf(this),
                 "Yakin ingin membatalkan klaim untuk \"" + c.getItemTitle() + "\"?",
                 "Konfirmasi Batalkan Klaim", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 controller.cancelClaim(c.getId());
-                JOptionPane.showMessageDialog(this, "Klaim berhasil dibatalkan.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Klaim berhasil dibatalkan.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
                 refreshData();
             } catch (ServiceException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

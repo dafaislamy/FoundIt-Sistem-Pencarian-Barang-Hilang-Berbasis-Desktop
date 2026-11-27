@@ -121,7 +121,7 @@ public class AdminVerifikasiLaporanPanel extends JPanel {
                 });
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat laporan pending: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat laporan pending: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -129,7 +129,7 @@ public class AdminVerifikasiLaporanPanel extends JPanel {
     private Item getSelected() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= pendingList.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih laporan terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih laporan terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return null;
         }
         return pendingList.get(row);
@@ -191,18 +191,18 @@ public class AdminVerifikasiLaporanPanel extends JPanel {
 
     private void verify(Item it, boolean approve) {
         String actionText = approve ? "menerbitkan" : "menolak";
-        int confirm = JOptionPane.showConfirmDialog(this,
+        int confirm = JOptionPane.showConfirmDialog(ThemeConfig.windowOf(this),
                 "Yakin ingin " + actionText + " laporan \"" + it.getTitle() + "\"?",
                 "Konfirmasi Verifikasi", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 controller.verifyItem(it.getId(), approve);
-                JOptionPane.showMessageDialog(this,
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this),
                         approve ? "Laporan berhasil diterbitkan!" : "Laporan berhasil ditolak.",
                         "Sukses", JOptionPane.INFORMATION_MESSAGE);
                 refreshData();
             } catch (ServiceException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

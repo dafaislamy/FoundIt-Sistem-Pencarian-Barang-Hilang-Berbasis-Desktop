@@ -39,7 +39,7 @@ public class UserDashboardFrame extends JFrame {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setBorder(new EmptyBorder(22, 0, 10, 8));
 
-        JPanel welcome = UiKit.gradient(UiKit.BLUE, UiKit.BLUE_DARK);
+        JPanel welcome = UiKit.gradient(ThemeConfig.WELCOME_GRAD_START, ThemeConfig.WELCOME_GRAD_END);
         welcome.setLayout(new BorderLayout());
         welcome.setBorder(new EmptyBorder(22, 26, 22, 26));
 
@@ -52,7 +52,7 @@ public class UserDashboardFrame extends JFrame {
         wt.add(UiKit.label("dan temukan juga barangmu yang hilang melalui laporan kampus.", 13, false, Color.WHITE));
         welcome.add(wt, BorderLayout.CENTER);
         body.add(welcome);
-        body.add(Box.createVerticalStrut(18));
+        body.add(Box.createVerticalStrut(24));
 
         JPanel stats = new JPanel(new GridLayout(1, 3, 15, 0));
         stats.setOpaque(false);
@@ -66,7 +66,7 @@ public class UserDashboardFrame extends JFrame {
         stats.add(stat("Laporan Saya", lblMyReportsCount, UiKit.PALE));
 
         body.add(stats);
-        body.add(Box.createVerticalStrut(18));
+        body.add(Box.createVerticalStrut(26));
 
         JPanel actions = UiKit.card();
         actions.setBorder(BorderFactory.createCompoundBorder(
@@ -105,7 +105,7 @@ public class UserDashboardFrame extends JFrame {
         buttons.add(btnQuickSearch);
         actions.add(buttons, BorderLayout.CENTER);
         body.add(actions);
-        body.add(Box.createVerticalStrut(18));
+        body.add(Box.createVerticalStrut(26));
 
         JPanel recent = UiKit.card();
         recent.setLayout(new BorderLayout(8, 12));

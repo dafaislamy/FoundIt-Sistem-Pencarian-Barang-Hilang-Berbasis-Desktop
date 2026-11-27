@@ -52,7 +52,7 @@ public class AdminDashboardPanel extends JPanel {
         JPanel body = new JPanel();
         body.setOpaque(false);
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-        body.setBorder(new EmptyBorder(0, 0, 16, 8));
+        body.setBorder(new EmptyBorder(4, 4, 20, 12));
 
         // 1. WELCOME BANNER
         RoundedPanel welcome = RoundedPanel.createWelcomeCard();
@@ -93,7 +93,7 @@ public class AdminDashboardPanel extends JPanel {
         welcome.add(btnWrap, BorderLayout.EAST);
 
         body.add(welcome);
-        body.add(Box.createVerticalStrut(20));
+        body.add(Box.createVerticalStrut(24));
 
         // 2. STATS CARDS (4 kolom)
         JPanel statsGrid = new JPanel(new GridLayout(1, 4, 16, 0));
@@ -112,15 +112,16 @@ public class AdminDashboardPanel extends JPanel {
         statsGrid.add(buildStatCard("Klaim Selesai", valApprovedClaims, ThemeConfig.BG_STAT_EMERALD, ThemeConfig.FG_STAT_EMERALD, "🛡️"));
 
         body.add(statsGrid);
-        body.add(Box.createVerticalStrut(22));
+        body.add(Box.createVerticalStrut(26));
 
         // 3. AKSI PINTAS ADMIN
         JLabel aksiTitle = new JLabel("Aksi Pintas Admin");
         aksiTitle.setFont(ThemeConfig.FONT_TITLE);
         aksiTitle.setForeground(ThemeConfig.COLOR_TEXT_PRIMARY);
+        aksiTitle.setBorder(new EmptyBorder(0, 14, 0, 0));
         aksiTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         body.add(aksiTitle);
-        body.add(Box.createVerticalStrut(10));
+        body.add(Box.createVerticalStrut(14));
 
         JPanel quickGrid = new JPanel(new GridLayout(1, 3, 16, 0));
         quickGrid.setOpaque(false);
@@ -141,12 +142,13 @@ public class AdminDashboardPanel extends JPanel {
                 ThemeConfig.BG_STAT_PURPLE, "👥", "admin-kelola-user"));
 
         body.add(quickGrid);
-        body.add(Box.createVerticalStrut(24));
+        body.add(Box.createVerticalStrut(26));
 
         // 4. LAPORAN BUTUH TINDAKAN
         JPanel tableHeader = new JPanel(new BorderLayout());
         tableHeader.setOpaque(false);
-        tableHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        tableHeader.setBorder(new EmptyBorder(0, 14, 0, 4));
+        tableHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
         tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel thLeft = new JPanel();
@@ -159,6 +161,7 @@ public class AdminDashboardPanel extends JPanel {
         thSub.setFont(ThemeConfig.FONT_SMALL);
         thSub.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
         thLeft.add(thTitle);
+        thLeft.add(Box.createVerticalStrut(5));
         thLeft.add(thSub);
 
         JLabel viewAll = new JLabel("Lihat Semua →");
@@ -172,7 +175,7 @@ public class AdminDashboardPanel extends JPanel {
         tableHeader.add(thLeft, BorderLayout.WEST);
         tableHeader.add(viewAll, BorderLayout.EAST);
         body.add(tableHeader);
-        body.add(Box.createVerticalStrut(10));
+        body.add(Box.createVerticalStrut(14));
 
         RoundedPanel tableCard = new RoundedPanel(ThemeConfig.CARD_RADIUS, ThemeConfig.BORDER_CARD, 1, false);
         tableCard.setLayout(new BorderLayout());
@@ -185,14 +188,17 @@ public class AdminDashboardPanel extends JPanel {
         };
 
         JTable table = new JTable(pendingTableModel);
-        table.setRowHeight(44);
+        table.setRowHeight(46);
         table.setFont(ThemeConfig.FONT_MEDIUM);
+        table.setFillsViewportHeight(true);
+        table.setIntercellSpacing(new Dimension(12, 6));
         table.setShowVerticalLines(false);
         table.setGridColor(ThemeConfig.TABLE_ROW_BORDER);
         table.getTableHeader().setFont(ThemeConfig.FONT_SEMIBOLD);
         table.getTableHeader().setBackground(ThemeConfig.TABLE_HEADER_BG);
         table.getTableHeader().setForeground(ThemeConfig.TABLE_HEADER_FG);
-        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 42));
+        table.getTableHeader().setReorderingAllowed(false);
 
         table.getColumnModel().getColumn(2).setCellRenderer(new TypeBadgeRenderer());
         table.getColumnModel().getColumn(5).setCellRenderer(new PendingBadgeRenderer());
@@ -200,7 +206,7 @@ public class AdminDashboardPanel extends JPanel {
         JScrollPane tableScroll = new JScrollPane(table);
         tableScroll.setBorder(null);
         tableScroll.getViewport().setBackground(Color.WHITE);
-        tableScroll.setPreferredSize(new Dimension(0, 260));
+        tableScroll.setPreferredSize(new Dimension(0, 280));
         tableCard.add(tableScroll, BorderLayout.CENTER);
 
         body.add(tableCard);
@@ -239,7 +245,7 @@ public class AdminDashboardPanel extends JPanel {
                 });
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat dashboard admin: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat dashboard admin: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

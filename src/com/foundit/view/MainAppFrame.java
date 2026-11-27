@@ -75,6 +75,7 @@ public class MainAppFrame extends JFrame {
         setSize(1280, 780);
         setMinimumSize(new Dimension(1040, 680));
         setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(this);
 
         initRouteHeaders();
         setContentPane(buildShell());

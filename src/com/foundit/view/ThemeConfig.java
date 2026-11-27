@@ -107,10 +107,10 @@ public final class ThemeConfig {
     public static final Color HERO_TEXT_SUB     = new Color(0xCBD5E1);
 
     // ===== WELCOME CARD (dashboard) =====
-    /** .welcome-card gradient mulai: #3498db */
-    public static final Color WELCOME_GRAD_START = new Color(0x3498DB);
-    /** .welcome-card gradient akhir: #2c3e50 */
-    public static final Color WELCOME_GRAD_END   = new Color(0x2C3E50);
+    /** .welcome-card gradient mulai: #1e293b */
+    public static final Color WELCOME_GRAD_START = new Color(0x1E293B);
+    /** .welcome-card gradient akhir: #1e3a8a */
+    public static final Color WELCOME_GRAD_END   = new Color(0x1E3A8A);
     /** .welcome-card p color: #eaf5fc */
     public static final Color WELCOME_TEXT_SUB   = new Color(0xEAF5FC);
 
@@ -294,5 +294,40 @@ public final class ThemeConfig {
             case "dibatalkan"  -> STATUS_DIBATALKAN_FG;
             default            -> STATUS_MENUNGGU_FG;
         };
+    }
+
+    /** Mengatur JFrame agar selalu terbuka dalam kondisi maximized (layar penuh dengan taskbar tetap terlihat). */
+    public static void applyMaximized(javax.swing.JFrame frame) {
+        if (frame != null) {
+            frame.setExtendedState(frame.getExtendedState() | javax.swing.JFrame.MAXIMIZED_BOTH);
+        }
+    }
+
+    /** Panel dengan gradien navy gelap 3-stop yang seragam dengan panel kiri LoginFrame (#1e293b -> #0f172a -> #1e3a8a). */
+    public static javax.swing.JPanel createHeroGradientPanel() {
+        return new javax.swing.JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                int w = getWidth(), h = getHeight();
+                LinearGradientPaint gp = new LinearGradientPaint(
+                        0, 0, Math.max(1, w), Math.max(1, h),
+                        new float[]{0f, 0.45f, 1f},
+                        new Color[]{HERO_GRAD_START, HERO_GRAD_MID, HERO_GRAD_END}
+                );
+                g2.setPaint(gp);
+                g2.fillRect(0, 0, w, h);
+                g2.dispose();
+            }
+        };
+    }
+
+    /** Mengembalikan Window induk (JFrame/JDialog) agar dialog selalu tampil tepat di tengah jendela utama. */
+    public static java.awt.Window windowOf(java.awt.Component comp) {
+        if (comp == null) return null;
+        if (comp instanceof java.awt.Window w) return w;
+        return javax.swing.SwingUtilities.getWindowAncestor(comp);
     }
 }

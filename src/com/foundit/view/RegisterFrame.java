@@ -5,17 +5,16 @@ import com.foundit.service.ServiceException;
 import com.foundit.view.components.RoundedButton;
 import com.foundit.view.components.RoundedPanel;
 import com.foundit.view.components.RoundedTextField;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * RegisterFrame — Halaman Registrasi User FoundIt Desktop.
@@ -62,6 +61,7 @@ public class RegisterFrame extends JFrame {
         setSize(1180, 760);
         setMinimumSize(new Dimension(980, 660));
         setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(this);
 
         setContentPane(buildRoot());
     }
@@ -73,23 +73,9 @@ public class RegisterFrame extends JFrame {
         return root;
     }
 
-    /** Bagian Kiri (.register-info): Gradient #2c3e50 -> #3498db + 2 steps */
+    /** Bagian Kiri (.register-info): Gradient navy gelap seragam dengan LoginFrame + 2 steps */
     private JPanel buildLeftInfoPanel() {
-        JPanel left = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                GradientPaint gp = new GradientPaint(
-                        0, 0, ThemeConfig.WELCOME_GRAD_END,
-                        getWidth(), getHeight(), ThemeConfig.WELCOME_GRAD_START
-                );
-                g2.setPaint(gp);
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.dispose();
-            }
-        };
+        JPanel left = ThemeConfig.createHeroGradientPanel();
         left.setPreferredSize(new Dimension(390, 0));
         left.setLayout(new BorderLayout());
         left.setBorder(new EmptyBorder(48, 44, 40, 44));
@@ -130,7 +116,7 @@ public class RegisterFrame extends JFrame {
         // Steps (.steps)
         content.add(createStepRow("1", "Data Diri", "Informasi mahasiswa", true));
         content.add(Box.createVerticalStrut(22));
-        content.add(createStepRow("2", "Profil Selesai", "Mulai menggunakan FoundIt", false));
+     
 
         left.add(content, BorderLayout.NORTH);
 
@@ -195,25 +181,29 @@ public class RegisterFrame extends JFrame {
 
     /** Bagian Kanan (.register-box): Scrollable Form */
     private JScrollPane buildRightFormScroll() {
+        ScrollableFormWrapper outerWrapper = new ScrollableFormWrapper();
+        outerWrapper.setBackground(Color.WHITE);
+        outerWrapper.setLayout(new BorderLayout());
+        outerWrapper.setBorder(new EmptyBorder(32, 64, 32, 64));
+
         JPanel formContainer = new JPanel();
         formContainer.setBackground(Color.WHITE);
         formContainer.setLayout(new BoxLayout(formContainer, BoxLayout.Y_AXIS));
-        formContainer.setBorder(new EmptyBorder(40, 60, 44, 60));
 
         // Header
         JLabel h2 = new JLabel("Data Mahasiswa");
-        h2.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        h2.setFont(new Font("Segoe UI", Font.BOLD, 26));
         h2.setForeground(ThemeConfig.COLOR_TEXT_PRIMARY);
         h2.setAlignmentX(Component.LEFT_ALIGNMENT);
         formContainer.add(h2);
-        formContainer.add(Box.createVerticalStrut(6));
+        formContainer.add(Box.createVerticalStrut(4));
 
         JLabel sub = new JLabel("Masukkan data diri kamu dengan benar.");
-        sub.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        sub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         sub.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
         sub.setAlignmentX(Component.LEFT_ALIGNMENT);
         formContainer.add(sub);
-        formContainer.add(Box.createVerticalStrut(22));
+        formContainer.add(Box.createVerticalStrut(18));
 
         // Error banner
         errorLabel = new JLabel();
@@ -223,9 +213,9 @@ public class RegisterFrame extends JFrame {
         errorLabel.setFont(ThemeConfig.FONT_REGULAR);
         errorLabel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(0xFECACA)),
-                new EmptyBorder(10, 14, 10, 14)
+                new EmptyBorder(8, 12, 8, 12)
         ));
-        errorLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        errorLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         errorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         errorLabel.setVisible(false);
         formContainer.add(errorLabel);
@@ -247,7 +237,7 @@ public class RegisterFrame extends JFrame {
         // 3. Fakultas & Program Studi (2 kolom)
         JPanel twoCol = new JPanel(new GridLayout(1, 2, 16, 0));
         twoCol.setOpaque(false);
-        twoCol.setMaximumSize(new Dimension(Integer.MAX_VALUE, 76));
+        twoCol.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
         twoCol.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         fakultasCombo = createComboBox(DAFTAR_FAKULTAS);
@@ -259,7 +249,7 @@ public class RegisterFrame extends JFrame {
         twoCol.add(fakCol);
         twoCol.add(jurCol);
         formContainer.add(twoCol);
-        formContainer.add(Box.createVerticalStrut(16));
+        formContainer.add(Box.createVerticalStrut(10));
 
         // 4. Angkatan
         angkatanCombo = createComboBox(DAFTAR_ANGKATAN);
@@ -275,36 +265,52 @@ public class RegisterFrame extends JFrame {
 
         // 7. Password + Hint
         formContainer.add(createLabel("Password"));
-        formContainer.add(Box.createVerticalStrut(6));
+        formContainer.add(Box.createVerticalStrut(5));
         formContainer.add(buildPasswordGroup());
-        formContainer.add(Box.createVerticalStrut(6));
+        formContainer.add(Box.createVerticalStrut(5));
 
         passwordHintLabel = new JLabel("Minimal 8 karakter, huruf kapital dan simbol.");
         passwordHintLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         passwordHintLabel.setForeground(ThemeConfig.COLOR_TEXT_MUTED);
         passwordHintLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         formContainer.add(passwordHintLabel);
-        formContainer.add(Box.createVerticalStrut(24));
+        formContainer.add(Box.createVerticalStrut(16));
 
         // Submit Button (.btn-register)
         submitButton = RoundedButton.createRegisterButton("Simpan & Lanjutkan");
-        submitButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        submitButton.setPreferredSize(new Dimension(240, 42));
+        submitButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
         submitButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         submitButton.addActionListener(e -> handleRegister());
         formContainer.add(submitButton);
 
-        JScrollPane scroll = new JScrollPane(formContainer);
+        outerWrapper.add(formContainer, BorderLayout.NORTH);
+
+        JScrollPane scroll = new JScrollPane(
+                outerWrapper,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        );
         scroll.setBorder(null);
+        scroll.getViewport().setBackground(Color.WHITE);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
+    }
+
+    private static class ScrollableFormWrapper extends JPanel implements Scrollable {
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) { return 16; }
+        @Override public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) { return 64; }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() { return false; }
     }
 
     private JPanel buildPasswordGroup() {
         RoundedPanel wrapper = new RoundedPanel(7, new Color(0xDDDDDD), 1, false);
         wrapper.setBackground(Color.WHITE);
         wrapper.setLayout(new BorderLayout());
-        wrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        wrapper.setPreferredSize(new Dimension(0, 42));
+        wrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        wrapper.setPreferredSize(new Dimension(0, 38));
         wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         passwordField = new JPasswordField();
@@ -352,8 +358,8 @@ public class RegisterFrame extends JFrame {
 
     private RoundedTextField createInput() {
         RoundedTextField tf = new RoundedTextField(7);
-        tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        tf.setPreferredSize(new Dimension(0, 42));
+        tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        tf.setPreferredSize(new Dimension(0, 40));
         tf.setAlignmentX(Component.LEFT_ALIGNMENT);
         return tf;
     }
@@ -363,8 +369,8 @@ public class RegisterFrame extends JFrame {
         cb.setFont(ThemeConfig.FONT_REGULAR);
         cb.setBackground(Color.WHITE);
         cb.setForeground(ThemeConfig.COLOR_TEXT_PRIMARY);
-        cb.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        cb.setPreferredSize(new Dimension(0, 42));
+        cb.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        cb.setPreferredSize(new Dimension(0, 40));
         cb.setAlignmentX(Component.LEFT_ALIGNMENT);
         return cb;
     }
@@ -382,16 +388,16 @@ public class RegisterFrame extends JFrame {
         p.setOpaque(false);
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.add(createLabel(labelText));
-        p.add(Box.createVerticalStrut(6));
+        p.add(Box.createVerticalStrut(5));
         p.add(field);
         return p;
     }
 
     private void addFormRow(JPanel container, String labelText, JComponent field) {
         container.add(createLabel(labelText));
-        container.add(Box.createVerticalStrut(6));
+        container.add(Box.createVerticalStrut(5));
         container.add(field);
-        container.add(Box.createVerticalStrut(16));
+        container.add(Box.createVerticalStrut(10));
     }
 
     private static String capitalizeWords(String input) {

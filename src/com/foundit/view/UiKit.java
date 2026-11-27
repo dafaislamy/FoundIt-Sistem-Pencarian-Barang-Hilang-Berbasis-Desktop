@@ -34,6 +34,7 @@ public final class UiKit {
         f.setSize(w, h);
         f.setMinimumSize(new Dimension(1050, 680));
         f.setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(f);
     }
 
     public static JPanel gradient(Color a, Color b) {

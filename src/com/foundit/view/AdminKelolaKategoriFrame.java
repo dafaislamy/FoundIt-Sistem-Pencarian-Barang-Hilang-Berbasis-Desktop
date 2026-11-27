@@ -27,6 +27,7 @@ public class AdminKelolaKategoriFrame extends JFrame {
         setSize(1150, 620);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(this);
         setLayout(new BorderLayout());
 
         add(new AdminSidebarPanel(this, AdminSidebarPanel.Menu.KELOLA_KATEGORI), BorderLayout.WEST);

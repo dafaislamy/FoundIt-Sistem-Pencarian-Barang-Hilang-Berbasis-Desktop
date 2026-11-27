@@ -92,6 +92,8 @@ public class LaporBarangPanel extends JPanel {
         kategoriCombo.setBackground(Color.WHITE);
         kategoriCombo.setFont(ThemeConfig.FONT_MEDIUM);
         kategoriCombo.setPreferredSize(new Dimension(0, 42));
+        kategoriCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        kategoriCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         tanggalField = createField("yyyy-MM-dd");
         tanggalField.setText(LocalDate.now().toString());
@@ -233,13 +235,13 @@ public class LaporBarangPanel extends JPanel {
     private void handleSubmit() {
         Account acc = Session.getCurrent();
         if (acc == null) {
-            JOptionPane.showMessageDialog(this, "Sesi login berakhir.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Sesi login berakhir.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         CategoryOption cat = (CategoryOption) kategoriCombo.getSelectedItem();
         if (cat == null) {
-            JOptionPane.showMessageDialog(this, "Pilih kategori terlebih dahulu!", "Validasi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih kategori terlebih dahulu!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -247,7 +249,7 @@ public class LaporBarangPanel extends JPanel {
         try {
             tanggal = LocalDate.parse(tanggalField.getText().trim());
         } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Format tanggal harus YYYY-MM-DD (contoh: 2026-11-26).",
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Format tanggal harus YYYY-MM-DD (contoh: 2026-11-26).",
                     "Validasi Tanggal", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -257,7 +259,7 @@ public class LaporBarangPanel extends JPanel {
             try {
                 savedPhoto = ImageHelper.saveUploadedImage(selectedImageFile, "item");
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Gagal menyimpan gambar: " + ex.getMessage(),
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal menyimpan gambar: " + ex.getMessage(),
                         "Error Upload", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -288,13 +290,13 @@ public class LaporBarangPanel extends JPanel {
                 );
             }
 
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this),
                     "Laporan berhasil dikirim dengan status Pending dan menunggu verifikasi Admin.",
                     "Laporan Terkirim", JOptionPane.INFORMATION_MESSAGE);
             resetForm();
             navigator.accept("riwayat-laporan");
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -326,12 +328,11 @@ public class LaporBarangPanel extends JPanel {
     }
 
     private JPanel wrap(String label, JComponent field) {
-        JPanel p = new JPanel();
+        JPanel p = new JPanel(new BorderLayout(0, 6));
         p.setOpaque(false);
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.add(createLabel(label));
-        p.add(Box.createVerticalStrut(6));
-        p.add(field);
+        field.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.add(createLabel(label), BorderLayout.NORTH);
+        p.add(field, BorderLayout.CENTER);
         return p;
     }
 

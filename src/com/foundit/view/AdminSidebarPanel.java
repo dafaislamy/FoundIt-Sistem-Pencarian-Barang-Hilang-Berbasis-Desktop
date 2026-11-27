@@ -30,8 +30,9 @@ public class AdminSidebarPanel extends JPanel {
         setPreferredSize(new Dimension(240, owner.getHeight()));
         setLayout(new BorderLayout());
 
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 25));
+        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         logoPanel.setOpaque(false);
+        logoPanel.setBorder(new EmptyBorder(24, 20, 16, 20));
         JLabel logoLabel = new JLabel("<html>Found<font color='#3498db'>It</font></html>");
         logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         logoPanel.add(logoLabel);
@@ -40,7 +41,7 @@ public class AdminSidebarPanel extends JPanel {
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
         navPanel.setOpaque(false);
-        navPanel.setBorder(new EmptyBorder(10, 15, 10, 15));
+        navPanel.setBorder(new EmptyBorder(0, 15, 15, 15));
 
         for (Menu m : Menu.values()) {
             boolean isActive = m == activeMenu;

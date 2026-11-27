@@ -118,7 +118,8 @@ public class RoundedButton extends JButton {
         RoundedButton b = new RoundedButton(text, Variant.PRIMARY, ThemeConfig.BTN_RADIUS_LARGE);
         b.normalBg = ThemeConfig.COLOR_BRAND_DARK;
         b.hoverBg  = ThemeConfig.COLOR_BRAND_DARKER;
-        b.setPreferredSize(new Dimension(Integer.MAX_VALUE, ThemeConfig.BTN_HEIGHT_LG));
+        b.setPreferredSize(new Dimension(240, ThemeConfig.BTN_HEIGHT_LG));
+        b.setMaximumSize(new Dimension(Integer.MAX_VALUE, ThemeConfig.BTN_HEIGHT_LG));
         b.setFont(ThemeConfig.FONT_BOLD);
         return b;
     }
@@ -126,7 +127,8 @@ public class RoundedButton extends JButton {
     /** .btn-register — tombol register, sudut 7px */
     public static RoundedButton createRegisterButton(String text) {
         RoundedButton b = new RoundedButton(text, Variant.PRIMARY, 7);
-        b.setPreferredSize(new Dimension(Integer.MAX_VALUE, ThemeConfig.BTN_HEIGHT_LG));
+        b.setPreferredSize(new Dimension(240, ThemeConfig.BTN_HEIGHT_LG));
+        b.setMaximumSize(new Dimension(Integer.MAX_VALUE, ThemeConfig.BTN_HEIGHT_LG));
         b.setFont(ThemeConfig.FONT_BOLD);
         return b;
     }

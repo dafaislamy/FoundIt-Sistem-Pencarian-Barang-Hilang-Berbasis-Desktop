@@ -27,6 +27,7 @@ public class AdminUbahStatusFrame extends JFrame {
         setSize(1150, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(this);
         setLayout(new BorderLayout());
 
         add(new AdminSidebarPanel(this, AdminSidebarPanel.Menu.UBAH_STATUS), BorderLayout.WEST);

@@ -230,7 +230,7 @@ public class KlaimBarangPanel extends JPanel {
 
         ItemOption opt = (ItemOption) itemCombo.getSelectedItem();
         if (opt == null) {
-            JOptionPane.showMessageDialog(this, "Tidak ada barang yang dipilih!", "Validasi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Tidak ada barang yang dipilih!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -239,7 +239,7 @@ public class KlaimBarangPanel extends JPanel {
             try {
                 attachmentName = ImageHelper.saveUploadedImage(selectedProofFile, "claim");
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Gagal menyimpan lampiran: " + ex.getMessage(),
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal menyimpan lampiran: " + ex.getMessage(),
                         "Error Upload", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -247,7 +247,7 @@ public class KlaimBarangPanel extends JPanel {
 
         try {
             controller.submitClaim(opt.item.getId(), acc.getId(), buktiArea.getText(), attachmentName);
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this),
                     "Klaim berhasil diajukan! Status klaim saat ini: Menunggu verifikasi Admin.",
                     "Klaim Terkirim", JOptionPane.INFORMATION_MESSAGE);
             buktiArea.setText("");
@@ -256,7 +256,7 @@ public class KlaimBarangPanel extends JPanel {
             proofPreviewImg.setIcon(ImageHelper.createPlaceholderIcon(80, 80));
             navigator.accept("status-klaim");
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Pengajuan Klaim Gagal", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Pengajuan Klaim Gagal", JOptionPane.WARNING_MESSAGE);
         }
     }
 

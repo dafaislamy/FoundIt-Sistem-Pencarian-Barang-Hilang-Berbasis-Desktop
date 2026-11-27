@@ -42,6 +42,7 @@ public class LoginFrame extends JFrame {
         setSize(1160, 740);
         setMinimumSize(new Dimension(960, 640));
         setLocationRelativeTo(null);
+        ThemeConfig.applyMaximized(this);
 
         setContentPane(buildRoot());
         updateRoleUI();

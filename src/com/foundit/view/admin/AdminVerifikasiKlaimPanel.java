@@ -142,7 +142,7 @@ public class AdminVerifikasiKlaimPanel extends JPanel {
                 });
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data klaim: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat data klaim: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -150,7 +150,7 @@ public class AdminVerifikasiKlaimPanel extends JPanel {
     private Claim getSelected() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= claimList.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih baris klaim terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih baris klaim terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return null;
         }
         return claimList.get(row);
@@ -204,7 +204,7 @@ public class AdminVerifikasiKlaimPanel extends JPanel {
         if (c == null) return;
 
         if (c.getStatus() != ClaimStatus.MENUNGGU) {
-            JOptionPane.showMessageDialog(this, "Klaim ini sudah diproses (" + c.getStatus().getDb() + ").",
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Klaim ini sudah diproses (" + c.getStatus().getDb() + ").",
                     "Info", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -216,17 +216,17 @@ public class AdminVerifikasiKlaimPanel extends JPanel {
                 ? "Setujui klaim dari " + c.getClaimantName() + "?\nStatus barang akan otomatis menjadi 'Selesai' dan klaim lain pada barang ini akan ditolak."
                 : "Tolak klaim dari " + c.getClaimantName() + "?";
 
-        if (JOptionPane.showConfirmDialog(this, msg, "Konfirmasi", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(ThemeConfig.windowOf(this), msg, "Konfirmasi", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             try {
                 if (approve) controller.approveClaim(c.getId(), adminId);
                 else controller.rejectClaim(c.getId(), adminId);
 
-                JOptionPane.showMessageDialog(this,
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this),
                         approve ? "Klaim disetujui! Barang ditandai Selesai." : "Klaim ditolak.",
                         "Sukses", JOptionPane.INFORMATION_MESSAGE);
                 loadClaims();
             } catch (ServiceException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

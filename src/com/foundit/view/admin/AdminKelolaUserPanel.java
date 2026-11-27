@@ -120,7 +120,7 @@ public class AdminKelolaUserPanel extends JPanel {
                 });
             }
         } catch (ServiceException ex) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat user: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Gagal memuat user: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -128,7 +128,7 @@ public class AdminKelolaUserPanel extends JPanel {
     private void editSelected() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= users.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih akun user terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih akun user terlebih dahulu.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         openUserDialog(users.get(row));
@@ -137,18 +137,18 @@ public class AdminKelolaUserPanel extends JPanel {
     private void deleteSelected() {
         int row = table.getSelectedRow();
         if (row < 0 || row >= users.size()) {
-            JOptionPane.showMessageDialog(this, "Pilih akun user yang ingin dihapus.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), "Pilih akun user yang ingin dihapus.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         User u = users.get(row);
-        if (JOptionPane.showConfirmDialog(this,
+        if (JOptionPane.showConfirmDialog(ThemeConfig.windowOf(this),
                 "Yakin ingin menghapus akun \"" + u.getFullName() + "\"?",
                 "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             try {
                 controller.deleteUser(u.getId());
                 loadUsers();
             } catch (ServiceException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Gagal Menghapus", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Gagal Menghapus", JOptionPane.WARNING_MESSAGE);
             }
         }
     }
@@ -177,7 +177,7 @@ public class AdminKelolaUserPanel extends JPanel {
         form.add(new JLabel(isEdit ? "Password Baru (opsional):" : "Password (min 6 kar):"));
         form.add(passF);
 
-        int res = JOptionPane.showConfirmDialog(this, form,
+        int res = JOptionPane.showConfirmDialog(ThemeConfig.windowOf(this), form,
                 isEdit ? "Ubah Akun User " + existing.getId() : "Tambah User Baru",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (res == JOptionPane.OK_OPTION) {
@@ -193,7 +193,7 @@ public class AdminKelolaUserPanel extends JPanel {
                 controller.saveUser(target, pwd.isEmpty() ? null : pwd);
                 loadUsers();
             } catch (ServiceException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(ThemeConfig.windowOf(this), ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
             }
         }
     }
